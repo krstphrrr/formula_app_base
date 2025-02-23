@@ -12,23 +12,27 @@ dependencies:
   provider: ^6.1.2 # state management
   sqflite: ^2.3.3+1 # sqlite db
   sqflite_common_ffi: ^2.3.3  # Add this if running on desktop or for tests
-  # flutter_slidable: ^3.1.1
+  wakelock_plus: ^1.2.8
+  # flutter_slidable: ^4.0.0
 
   core:
     path: packages/core
+
+  formula_list:
+    path: packages/formula_list
 
   settings_data:
     path: packages/settings_data
 
   
-  path_provider: ^2.1.4 # to get db path
-  intl: ^0.20.2
-  wakelock_plus: ^1.2.8
+  # path_provider: ^2.1.4 # to get db path
+  # intl: ^0.20.2
     # Use the latest version available 
   # open_file_plus: 3.4.1+1
   permission_handler: ^11.3.1
   flex_color_picker: ^3.6.0
   window_manager: ^0.4.3
+  file_picker: ^9.0.0
 
 dev_dependencies:
   flutter_test:

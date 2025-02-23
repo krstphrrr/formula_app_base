@@ -12,11 +12,14 @@ dependencies:
   flutter:
     sdk: flutter
   sqflite: ^2.3.3+1
-  flutter_slidable: ^3.1.1
+  flutter_slidable: ^4.0.0
   provider: ^6.1.2
 
   settings_data:
     path: ../settings_data
+  
+  formula_list:
+    path: ../formula_list
 
 dev_dependencies:
   flutter_test:

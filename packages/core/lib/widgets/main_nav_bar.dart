@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 // import 'package:formula_app_base/settings_data.dart';
 import 'package:settings_data/settings_data.dart';
+import 'package:formula_list/formula_list.dart';
 // import '../../features/settings_data/presentation/settings_data_page.dart';
 // import 'package:formula_composer/features/settings_categories_color/presentation/settings_category_page.dart';
 // import 'package:formula_composer/features/formula_list/presentation/formula_list_page.dart';
@@ -124,11 +125,11 @@ Widget build(BuildContext context) {
             onGenerateRoute: 
             (settings) {
               return MaterialPageRoute(
-                // builder: (context) => FormulaListPage(),
-                builder: (context) => _PlaceholderPage(
-                  title: 'Formulas',
-                  color: Theme.of(context).primaryColor,
-                ),
+                builder: (context) => FormulaListPage(),
+                // builder: (context) => _PlaceholderPage(
+                //   title: 'Formulas',
+                //   color: Theme.of(context).primaryColor,
+                // ),
               );
             },
           ),
