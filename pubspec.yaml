@@ -23,6 +23,9 @@ dependencies:
 
   settings_data:
     path: packages/settings_data
+  
+  formula_add:
+    path: packages/formula_add
 
   
   # path_provider: ^2.1.4 # to get db path
