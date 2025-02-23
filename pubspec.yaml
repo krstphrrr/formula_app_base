@@ -1,0 +1,68 @@
+name: formula_app_base
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # provider: ^6.1.2 # state management
+  sqflite: ^2.3.3+1 # sqlite db
+  sqflite_common_ffi: ^2.3.3  # Add this if running on desktop or for tests
+  # flutter_slidable: ^3.1.1
+
+  core:
+    path: packages/core
+
+  settings_data:
+    path: packages/settings_data
+
+  
+  path_provider: ^2.1.4 # to get db path
+  intl: ^0.19.0
+  wakelock_plus: ^1.2.8
+    # Use the latest version available 
+  # open_file_plus: 3.4.1+1
+  permission_handler: ^11.3.1
+  flex_color_picker: ^3.6.0
+  window_manager: ^0.4.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+  - assets/images/momo.jpg
+  - assets/images/bat-a-clear/4x/bat-a-clear-topxxxhdpi.png
+  - assets/images/bat-a-clear/4x/bat-a-clear-top_midxxxhdpi.png
+  - assets/images/bat-a-clear/4x/bat-a-clear-midxxxhdpi.png
+  - assets/images/bat-a-clear/4x/bat-a-clear-mid_basexxxhdpi.png
+  - assets/images/bat-a-clear/4x/bat-a-clear-basexxxhdpi.png
+  - assets/images/bat-a-clear/4x/bat-a-clear-nonexxxhdpi.png
+
+  - assets/images/bat-a-grey/4x/bat-a-grey-topxxxhdpi.png
+  - assets/images/bat-a-grey/4x/bat-a-grey-top_midxxxhdpi.png
+  - assets/images/bat-a-grey/4x/bat-a-grey-midxxxhdpi.png
+  - assets/images/bat-a-grey/4x/bat-a-grey-mid_basexxxhdpi.png
+  - assets/images/bat-a-grey/4x/bat-a-grey-basexxxhdpi.png
+  - assets/images/bat-a-grey/4x/bat-a-grey-nonexxxhdpi.png
+
+  - assets/images/bat-b-clear/4x/bat-b-clear-topxxxhdpi.png
+  - assets/images/bat-b-clear/4x/bat-b-clear-top_midxxxhdpi.png
+  - assets/images/bat-b-clear/4x/bat-b-clear-midxxxhdpi.png
+  - assets/images/bat-b-clear/4x/bat-b-clear-mid_basexxxhdpi.png
+  - assets/images/bat-b-clear/4x/bat-b-clear-basexxxhdpi.png
+  - assets/images/bat-b-clear/4x/bat-b-clear-nonexxxhdpi.png
+
+  - assets/images/pyramid-clear/4x/pyramid-clear-basexxxhdpi.png
+  - assets/images/pyramid-clear/4x/pyramid-clear-mid-basexxxhdpi.png
+  - assets/images/pyramid-clear/4x/pyramid-clear-midxxxhdpi.png
+  - assets/images/pyramid-clear/4x/pyramid-clear-nonexxxhdpi.png
+  - assets/images/pyramid-clear/4x/pyramid-clear-top_midxxxhdpi.png
+  - assets/images/pyramid-clear/4x/pyramid-clear-topxxxhdpi.png
