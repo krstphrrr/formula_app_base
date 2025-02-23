@@ -1,3 +1,4 @@
+import 'package:formula_list/formula_list.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,9 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:provider/provider.dart';
 import 'core/feature_loader.dart';
 
+import 'package:formula_list/state/formula_list_provider.dart';
+import 'package:formula_list/domain/formula_list_service.dart';
+import 'package:formula_list/data/formula_list_repository.dart';
 
 Future<void> main() async {
 

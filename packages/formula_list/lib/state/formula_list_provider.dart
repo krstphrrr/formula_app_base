@@ -1,6 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../domain/formula_list_service.dart';
+import 'package:formula_list/domain/formula_list_service.dart';
 
 class FormulaListProvider extends ChangeNotifier {
   final FormulaListService _service;
@@ -31,15 +32,21 @@ class FormulaListProvider extends ChangeNotifier {
 
   // methods
 
-  Future<void> fetchFormulas() async {
-    _isLoading = true;
-    notifyListeners();  
+Future<void> fetchFormulas() async {
+  if (_isLoading) return; // ✅ Prevent multiple calls
+  _isLoading = true;
 
-     _formulas = await _service.fetchFormulas();
-    _filteredFormulas = List.from(_formulas);
-    _isLoading = false;
-    notifyListeners();  
+  final newFormulas = await _service.fetchFormulas(); // Fetch new data
+
+  if (!listEquals(_formulas, newFormulas)) { // ✅ Only update if there are actual changes
+    _formulas = newFormulas;
+    _filteredFormulas = List.from(newFormulas); // ✅ Update filtered list
+
+    notifyListeners(); // ✅ Only trigger UI updates when data actually changes
   }
+
+  _isLoading = false;
+}
 
   Future<void> deleteFormula(int id) async {
 

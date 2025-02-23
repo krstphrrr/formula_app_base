@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/theme_provider.dart';
-// import 'package:formula_app_base/settings_data.dart';
+import 'package:core/providers/theme_provider.dart';
+
 import 'package:settings_data/settings_data.dart';
 import 'package:formula_list/formula_list.dart';
-// import '../../features/settings_data/presentation/settings_data_page.dart';
-// import 'package:formula_composer/features/settings_categories_color/presentation/settings_category_page.dart';
-// import 'package:formula_composer/features/formula_list/presentation/formula_list_page.dart';
-// import 'package:formula_composer/features/ingredient_list/presentation/ingredient_list_page.dart';
 
 class MainNavBar extends StatefulWidget {
   @override
@@ -16,6 +12,16 @@ class MainNavBar extends StatefulWidget {
 
 class _MainNavBarState extends State<MainNavBar> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
 
   // Method to handle index changes when a new tab is selected
   void onTabTapped(int index) {
@@ -120,31 +126,46 @@ Widget build(BuildContext context) {
       body: IndexedStack(
         index: _currentIndex,
         children: [
-          Navigator(
-            key: GlobalKey<NavigatorState>(),
-            onGenerateRoute: 
-            (settings) {
-              return MaterialPageRoute(
-                builder: (context) => FormulaListPage(),
-                // builder: (context) => _PlaceholderPage(
-                //   title: 'Formulas',
-                //   color: Theme.of(context).primaryColor,
-                // ),
-              );
-            },
-          ),
-          Navigator(
-            key: GlobalKey<NavigatorState>(),
-            onGenerateRoute: (settings) {
-              return MaterialPageRoute(
-                // builder: (context) => IngredientListPage(),
-                builder: (context) => _PlaceholderPage(
-                  title: 'Ingredients',
-                  color: Theme.of(context).primaryColor,
+            //  Navigator(
+            //     key: GlobalKey<NavigatorState>(),
+            //     onGenerateRoute: (settings) {
+            //       return MaterialPageRoute(
+            //         builder: (context) => FormulaListPage(),
+            //       );
+            //     },
+            //   ),
+            Consumer<FormulaListProvider>(
+                builder: (context, formulaListProvider, child) {
+                  return Scaffold(
+                    body: IndexedStack(
+                      index: _currentIndex,
+                      children: [
+                        Navigator(
+                          key: GlobalKey<NavigatorState>(),
+                          onGenerateRoute: (settings) {
+                            return MaterialPageRoute(
+                              builder: (context) => FormulaListPage(),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              Builder(
+                builder: (newContext) => Navigator(
+                  key: GlobalKey<NavigatorState>(),
+                  onGenerateRoute: (settings) {
+                    return MaterialPageRoute(
+                      builder: (newContext) => _PlaceholderPage(
+                        title: 'Ingredients',
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
+              ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(

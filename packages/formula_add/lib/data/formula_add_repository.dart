@@ -46,7 +46,6 @@ class FormulaAddRepository {
     final List<Map<String, dynamic>> categoryData = await db.query('ifra_categories');
 
     return categoryData;
-// Notify listeners so that UI can update when data is loaded
   }
 
   Future<void> updateFormula(int id, Map<String, dynamic> updatedFormula) async {

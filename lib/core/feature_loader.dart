@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -14,7 +15,10 @@ class FeatureLoader {
     settings_data.loadFeatureProviders,
   ];
 
-  static List<ChangeNotifierProvider> loadProviders(Database db) {
-    return _featureLoaders.expand((loader) => loader(db)).toList();
-  }
+static List<ChangeNotifierProvider<ChangeNotifier>> loadProviders(Database db) {
+
+  final providers = _featureLoaders.expand((loader) => loader(db)).toList();
+
+  return providers.whereType<ChangeNotifierProvider<ChangeNotifier>>().toList();
+}
 }

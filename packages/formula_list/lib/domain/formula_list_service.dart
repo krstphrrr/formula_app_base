@@ -1,4 +1,4 @@
-import '../data/formula_list_repositiory.dart';
+import 'package:formula_list/data/formula_list_repository.dart';
 
 class FormulaListService {
   // FormulaListService() : super();

@@ -214,6 +214,7 @@ class DatabaseHelper {
 
   Future<void> _seedData(Database db) async {
     final ifraCategories = [
+      {'category_id': 'category_0', 'description': 'Accords'},
       {'category_id': 'category_1', 'description': 'Lip Products/Toys'},
       {'category_id': 'category_2', 'description': 'Deodorant/Antiperspirant'},
       {'category_id': 'category_3', 'description': 'Eye Products'},

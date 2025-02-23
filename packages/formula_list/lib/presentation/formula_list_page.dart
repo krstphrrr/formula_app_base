@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:core/core.dart';
 import 'package:formula_add/formula_add.dart';
-// import 'package'
-
-import '../state/formula_list_provider.dart';
+import 'package:formula_list/state/formula_list_provider.dart';
 
 
 class FormulaListPage extends StatefulWidget {
@@ -20,13 +19,17 @@ class _FormulaListPageState extends State<FormulaListPage> {
 
 
   @override
-  void initState() {
-    super.initState();
-    // Fetch formulas when the page is initialized
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<FormulaListProvider>(context, listen: false).fetchFormulas();
-    });
-  }
+void initState() {
+  super.initState();
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (mounted) {
+      final provider = Provider.of<FormulaListProvider>(context, listen: false);
+      if (provider.formulas.isEmpty) {
+        provider.fetchFormulas();
+      }
+    }
+  });
+}
 
   void openEditBox(int index) {
     final formulaListProvider =

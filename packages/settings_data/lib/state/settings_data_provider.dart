@@ -4,7 +4,7 @@ import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
-import '../domain/settings_data_service.dart';
+import 'package:settings_data/domain/settings_data_service.dart';
 
 class SettingsDataProvider extends ChangeNotifier {
   String selectedFeature = 'IFRA'; // Default selected feature

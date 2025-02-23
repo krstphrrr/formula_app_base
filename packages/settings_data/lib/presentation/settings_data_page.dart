@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:settings_data/settings_data.dart';
-// import '../state/settings_data_provider.dart';
+import 'package:settings_data/state/settings_data_provider.dart';
 
 class SettingsDataPage extends StatefulWidget {
   @override

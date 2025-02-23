@@ -90,9 +90,8 @@ class _FormulaAddPageState extends State<FormulaAddPage> {
                         border: OutlineInputBorder(),
                       ),
                     )
-                        // },
-                        // ),
-                        // ),
+
+
                         )
                   ],
                 ),
