@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # provider: ^6.1.2 # state management
+  provider: ^6.1.2 # state management
   sqflite: ^2.3.3+1 # sqlite db
   sqflite_common_ffi: ^2.3.3  # Add this if running on desktop or for tests
   # flutter_slidable: ^3.1.1
@@ -22,7 +22,7 @@ dependencies:
 
   
   path_provider: ^2.1.4 # to get db path
-  intl: ^0.19.0
+  intl: ^0.20.2
   wakelock_plus: ^1.2.8
     # Use the latest version available 
   # open_file_plus: 3.4.1+1
@@ -33,7 +33,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true

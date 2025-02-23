@@ -13,8 +13,9 @@ import 'package:flutter/material.dart';
 import 'package:core/core.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart'; // For non-mobile platforms
 import 'package:wakelock_plus/wakelock_plus.dart'; // Updated to wakelock_plus
-import 'package:provider/provider.dart';
 
+import 'package:provider/provider.dart';
+import 'package:settings_data/settings_data.dart';
 // import 'features/formula_add/data/formula_add_repository.dart';
 // import 'features/formula_add/domain/formula_add_service.dart';
 // import 'features/formula_add/state/formula_add_provider.dart';
@@ -81,9 +82,9 @@ Future<void> main() async {
   // final ingredientEditService = IngredientEditService(ingredientEditRepository);
   // final ingredientEditProvider = IngredientEditProvider(ingredientEditService);
 
-  // final settingsDataRepository = SettingsDataRepository(database);
-  // final settingsDataService = SettingsDataService(settingsDataRepository);
-  // final settingsDataProvider = SettingsDataProvider(settingsDataService);
+  final settingsDataRepository = SettingsDataRepository(database);
+  final settingsDataService = SettingsDataService(settingsDataRepository);
+  final settingsDataProvider = SettingsDataProvider(settingsDataService);
 
   // final settingsCategoryRepository = SettingsCategoryRepository(database);
   // final settingsCategoryService = SettingsCategoryService(settingsCategoryRepository);
@@ -108,7 +109,7 @@ Future<void> main() async {
         // ChangeNotifierProvider(create: (context) => ingredientEditProvider),
         // ChangeNotifierProvider(create: (context) => ingredientViewProvider),
         // ChangeNotifierProvider(create: (context) => formulaScaleProvider),
-        // ChangeNotifierProvider(create: (context) => settingsDataProvider),
+        ChangeNotifierProvider(create: (context) => settingsDataProvider),
         // ChangeNotifierProvider(create: (context) => settingsCategoryProvider)
         // ChangeNotifierProvider(create: (context) => settingsProvider)
       ],
