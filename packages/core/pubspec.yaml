@@ -20,6 +20,9 @@ dependencies:
   
   formula_list:
     path: ../formula_list
+  
+  formula_add:
+    path: ../formula_add
 
 dev_dependencies:
   flutter_test:
