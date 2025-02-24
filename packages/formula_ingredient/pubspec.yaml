@@ -1,4 +1,4 @@
-name: formula_add
+name: formula_ingredient
 description: "A new Flutter package project."
 version: 0.0.1
 publish_to: none
@@ -13,11 +13,15 @@ dependencies:
     sdk: flutter
   sqflite: ^2.4.2
   provider: ^6.1.2
-  intl: ^0.20.2
-  
+  path_provider: ^2.1.4
+  file_picker: ^9.0.0
+  csv: ^6.0.0
+
   core:
     path: ../core
   
+  formula_list:
+    path: ../formula_list
 
 dev_dependencies:
   flutter_test:

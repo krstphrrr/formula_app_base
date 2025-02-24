@@ -78,7 +78,7 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
-      CREATE TABLE formula_ingredients (
+      CREATE TABLE formula_ingredient (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         formula_id INTEGER NOT NULL,
         ingredient_id INTEGER,

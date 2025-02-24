@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:core/core.dart';
 import 'package:formula_add/formula_add.dart';
-import 'package:formula_list/state/formula_list_provider.dart';
+import 'package:formula_list/formula_list.dart';
+import 'package:formula_ingredient/formula_ingredient.dart';
+
 
 
 class FormulaListPage extends StatefulWidget {
@@ -173,16 +174,16 @@ void initState() {
                     onEditPressed: (context) => openEditBox(index),
                     onDeletePressed: (context) => openDeleteBox(index),
                     onTap: () async {
-                      // final potentialResult = await Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) =>
-                      //         // FormulaIngredientPage(formula: formula),
-                      //   ),
-                      // );
-                      // if (potentialResult == true) {
-                      //   formulaListProvider.fetchFormulas();
-                      // }
+                      final potentialResult = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              FormulaIngredientPage(formula: formula),
+                        ),
+                      );
+                      if (potentialResult == true) {
+                        formulaListProvider.fetchFormulas();
+                      }
                     },
                     centerImage: null,
                     categoryColor: isRatioFormula ? null : null,
