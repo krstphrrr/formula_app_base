@@ -18,5 +18,5 @@
 - [ ] formula_ingredients possible adds pulls from ingredients
     - row save would give you the option to add.
 
-- [ ] fix broken sql logic on formula_ingredient pulls: ifra category_0 does not exist. 
+- [x] fix broken sql logic on formula_ingredient pulls: ifra category_0 does not exist. 
 
