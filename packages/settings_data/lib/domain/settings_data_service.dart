@@ -99,6 +99,8 @@ class SettingsDataService {
   Future<void> ingestIfraCsv(List<Map<String, dynamic>> ifraData) async {
     if (ifraData.isNotEmpty) {
       for (final data in ifraData) {
+        // Ensure `category_0` exists
+        data['category_0'] = data['category_0'] ?? 'Custom';
         await _repository.insertDataIntoTable(data, 'ifra_standards');
       }
     }
@@ -108,11 +110,12 @@ class SettingsDataService {
 Future<void> ingestIngredientsCsv(List<Map<String, dynamic>> ingredientData) async {
   if (ingredientData.isNotEmpty) {
     for (final data in ingredientData) {
-      final casNumbers = (data['cas_numbers'] as String).split(',').map((e) => e.trim()).toList();
+      final casNumbers = (data['cas_number'] as String).split(',').map((e) => e.trim()).toList();
       final List<String> synonyms = List<String>.from(data['synonyms'] ?? []);
+      final String? preferredSynonym = data['preferred_synonym'];
 
-      // Get the ingredient ID from the insert method
-      final int ingredientId = await _repository.insertIngredientWithCASAndCategory(data, casNumbers);
+      // Insert ingredient into database and get ID
+      final int ingredientId = await _repository.insertIngredientWithDetails(data, casNumbers, preferredSynonym);
 
       // Ensure the ingredient ID is valid before inserting synonyms
       if (ingredientId != -1) {

@@ -39,55 +39,69 @@ Future<void> truncateTable(String tableName) async {
 
   // Generalized method to insert data into a specified table
   Future<void> insertDataIntoTable(Map<String, dynamic> data, String tableName) async {
-    final db = await DatabaseHelper().database;
-    try {
-      await db.insert(tableName, data);
-      print("Inserted data into $tableName: $data");
-    } catch (e) {
-      print("Failed to insert data into $tableName: $e");
-    }
-  }
-
-  // Method to insert ingredient data and handle CAS numbers and category
- Future<int> insertIngredientWithCASAndCategory(
-    Map<String, dynamic> ingredientData, List<String> casNumbers) async {
   final db = await DatabaseHelper().database;
   try {
-    // Insert the ingredient data into the ingredients table
+    // Ensure category_0 is set before inserting
+    if (!data.containsKey('category_0') || data['category_0'] == null) {
+      data['category_0'] = 'Custom';
+    }
+
+    await db.insert(tableName, data);
+    print("Inserted data into $tableName: $data");
+  } catch (e) {
+    print("Failed to insert data into $tableName: $e");
+  }
+}
+
+Future<int> insertIngredientWithDetails(
+    Map<String, dynamic> ingredientData, List<String> casNumbers, String? preferredSynonym) async {
+  final db = await DatabaseHelper().database;
+  int? preferredSynonymId;
+
+  try {
+    // Insert the ingredient first
     final int ingredientId = await db.insert('ingredients', {
       'name': ingredientData['name'],
+      'cas_number': ingredientData['cas_number'],
       'category': ingredientData['category'],
-      'inventory_amount': ingredientData['inventory_amount'] ?? 0.0,
-      'cost_per_gram': ingredientData['cost_per_gram'] ?? 0.0,
-      'supplier': ingredientData['supplier'] ?? '',
-      'acquisition_date': ingredientData['acquisition_date'] ?? '',
-      'description': ingredientData['description'] ?? '',
-      'personal_notes': ingredientData['personal_notes'] ?? '',
-      'supplier_notes': ingredientData['supplier_notes'] ?? '',
-      'pyramid_place': ingredientData['pyramid_place'] ?? '',
+      'description': ingredientData['description'],
       'substantivity': ingredientData['substantivity'] ?? 0.0,
+      'boiling_point': ingredientData['boiling_point'],
+      'vapor_pressure': ingredientData['vapor_pressure'],
+      'molecular_weight': ingredientData['molecular_weight'],
+      'pyramid_place': ingredientData['pyramid_place'],
     });
 
     print("Inserted ingredient with ID: $ingredientId");
 
     // Handle CAS numbers
     for (String cas in casNumbers) {
-      await addCASNumber(ingredientId, cas);
+      if (cas.isNotEmpty) {
+        await addCASNumber(ingredientId, cas);
+      }
     }
 
-    // Handle the category (type) from the ingredients CSV
-    final category = ingredientData['category'] ?? '';
-    if (category.isNotEmpty) {
-      await addOrUpdateCategory(category);
+    // Insert preferred synonym if provided
+    if (preferredSynonym != null && preferredSynonym.isNotEmpty) {
+      preferredSynonymId = await addSynonym(ingredientId, preferredSynonym);
     }
 
-    // Return the ingredient ID
+    // Update the ingredient with the preferred synonym ID
+    if (preferredSynonymId != null) {
+      await db.update('ingredients', {
+        'preferred_synonym_id': preferredSynonymId,
+      }, where: 'id = ?', whereArgs: [ingredientId]);
+    }
+
     return ingredientId;
   } catch (e) {
-    print("Error inserting ingredient with CAS numbers and category: $e");
+    print("Error inserting ingredient: $e");
     return -1; // Return -1 in case of an error
   }
 }
+
+
+
 
   // Helper method to add or update the category in olfactive_categories
   Future<void> addOrUpdateCategory(String category) async {
@@ -127,16 +141,18 @@ Future<void> truncateTable(String tableName) async {
   }
 
   // Method to add a synonym to the ingredient_synonyms table
-Future<void> addSynonym(int ingredientId, String synonym) async {
+Future<int> addSynonym(int ingredientId, String synonym) async {
   final db = await DatabaseHelper().database;
   try {
-    await db.insert('ingredient_synonyms', {
+    final int synonymId = await db.insert('ingredient_synonyms', {
       'ingredient_id': ingredientId,
       'synonym': synonym,
     });
-    print("Synonym '$synonym' added for ingredient ID $ingredientId");
+    print("Synonym '$synonym' added for ingredient ID $ingredientId with ID $synonymId");
+    return synonymId;
   } catch (e) {
     print("Error adding synonym: $e");
+    return -1; // Return -1 if an error occurs
   }
 }
 

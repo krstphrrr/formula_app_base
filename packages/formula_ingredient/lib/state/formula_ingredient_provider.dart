@@ -370,50 +370,41 @@ bool isIngredientCompliant(int index) {
   }
 
 void filterAvailableIngredients(String query) {
-  // If the query is empty, show all available ingredients
+  print("Filtering ingredients with query: '$query'");
+
   if (query.isEmpty) {
+    print("Query is empty, showing all ingredients.");
     _filteredIngredients = List.from(_availableIngredients);
     notifyListeners();
     return;
   }
 
-  // Split the search query into individual keywords by space
   final keywords = query.toLowerCase().split(' ');
 
-  // Filter ingredients based on the query and the relevant fields
   _filteredIngredients = _availableIngredients.where((ingredient) {
-    // Extract relevant fields from the ingredient
     final commonName = ingredient['name']?.toLowerCase() ?? '';
     final category = ingredient['category']?.toLowerCase() ?? '';
-    // final supplier = ingredient['supplier']?.toLowerCase() ?? '';
-    // final description = ingredient['description']?.toLowerCase() ?? '';
-    // final personalNotes = ingredient['personal_notes']?.toLowerCase() ?? '';
-    // final supplierNotes = ingredient['supplier_notes']?.toLowerCase() ?? '';
-    // final pyramidPlace = ingredient['pyramid_place']?.toLowerCase() ?? '';
-    final synonyms = (ingredient['synonyms'] as List<String>?)?.join(' ').toLowerCase() ?? '';
+    final synonyms = ingredient['synonyms']?.toLowerCase() ?? ''; 
+    // final casNumbers = ingredient['cas_numbers']?.toLowerCase() ?? ''; 
 
-    // Join CAS numbers into a single string for searching
-    final casNumbers = (ingredient['cas_numbers'] != null && ingredient['cas_numbers'] is List)
-        ? (ingredient['cas_numbers'] as List).join(' ').toLowerCase()
-        : '';
-
-    // Check if all the keywords are present in any of the fields
-    return keywords.every((keyword) {
+    final matches = keywords.every((keyword) {
       return commonName.contains(keyword) ||
-          category.contains(keyword) ||
-          // supplier.contains(keyword) ||
-          // description.contains(keyword) ||
-          // personalNotes.contains(keyword) ||
-          // supplierNotes.contains(keyword) ||
-          // pyramidPlace.contains(keyword) ||
-          synonyms.contains(keyword) ||
-          casNumbers.contains(keyword);
+             category.contains(keyword) ||
+             synonyms.contains(keyword);
+            //  casNumbers.contains(keyword);
     });
+
+    if (matches) {
+      print("MATCH: ${ingredient['name']} | Synonyms: $synonyms");
+    }
+
+    return matches;
   }).toList();
 
-  // Notify listeners to update the UI
+  print("Filtered ingredients count: ${_filteredIngredients.length}");
   notifyListeners();
 }
+
 
 Future<void> addIngredientToFormula(int ingredientId) async {
   // Find the formula ingredient row by ingredient ID

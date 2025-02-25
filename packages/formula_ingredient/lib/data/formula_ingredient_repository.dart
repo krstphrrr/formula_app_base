@@ -9,18 +9,47 @@ class FormulaIngredientRepository {
 
   Future<List<Map<String, dynamic>>> fetchAvailableIngredients() async {
   final db = await DatabaseHelper().database;
-    print("Fetching ingredients from the database...");
-    try {
-      final data = await db.query('ingredients');
-      print("Fetched ingredients: $data");
-      // _ingredients = data;
-      // notifyListeners();
-      return data; // Return the fetched ingredients
-    } catch (e) {
-      print("Error fetching ingredients: $e");
-      return []; // Return an empty list if there's an error
-    }
+  print("Fetching ingredients without CAS numbers...");
+
+  try {
+    final data = await db.rawQuery('''
+      SELECT i.id, i.name, i.category, 
+             (SELECT GROUP_CONCAT(s.synonym, ', ') 
+              FROM ingredient_synonyms s 
+              WHERE s.ingredient_id = i.id) AS synonyms
+      FROM ingredients i;
+    ''');
+
+    print("Fetched ${data.length} ingredients (without CAS numbers).");
+    return data;
+  } catch (e) {
+    print("Error fetching ingredients: $e");
+    return [];
   }
+}
+
+
+
+// Future<void> debugCheckTables() async {
+//   final db = await DatabaseHelper().database;
+
+//   final test = Sqflite.firstIntValue(
+//       await db.rawQuery('''
+// SELECT i.id, i.name, i.category, 
+//              (SELECT GROUP_CONCAT(s.synonym, ', ') 
+//               FROM ingredient_synonyms s 
+//               WHERE s.ingredient_id = i.id) AS synonyms,
+//              (SELECT GROUP_CONCAT(c.cas_number, ', ') 
+//               FROM cas_numbers c 
+//               WHERE c.ingredient_id = i.id) AS cas_numbers
+//       FROM ingredients i;
+// LIMIT 10;
+
+// ''')) ?? 0;
+  
+
+//   print("DEBUG: Ingredients Count = $test");
+// }
 
 
   Future<List<Map<String, dynamic>>> fetchIngredientsForFormula(int formulaId) async {

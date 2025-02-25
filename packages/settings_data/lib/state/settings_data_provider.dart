@@ -108,51 +108,50 @@ Future<void> importData(BuildContext context) async {
   //   }
   // }
 
-  // Helper method to parse IFRA CSV data
   List<Map<String, dynamic>> _parseIfraCsv(List<List<dynamic>> rows) {
-    return rows.skip(1).map((row) {
-      return {
-        'key': row[0]?.toString(),
-        'amendment_number': int.tryParse(row[1]?.toString() ?? '0'),
-        'year_previous_publication': row[2]?.toString(),
-        'year_last_publication': int.tryParse(row[3]?.toString() ?? '0'),
-        'implementation_deadline_existing': row[4]?.toString(),
-        'implementation_deadline_new': row[5]?.toString(),
-        'name_of_ifra_standard': row[6]?.toString(),
-        'cas_numbers': row[7]?.toString(),
-        'cas_numbers_comment': row[8]?.toString(),
-        'synonyms': row[9]?.toString(),
-        'ifra_standard_type': row[10]?.toString(),
-        'intrinsic_property': row[11]?.toString(),
-        'flavor_use_consideration': row[12]?.toString(),
-        'prohibited_fragrance_notes': row[13]?.toString(),
-        'phototoxicity_notes': row[14]?.toString(),
-        'restricted_ingredients_notes': row[15]?.toString(),
-        'specified_ingredients_notes': row[16]?.toString(),
-        'contributions_other_sources': row[17]?.toString(),
-        'contributions_other_sources_notes': row[18]?.toString(),
-        'category_1': row[19]?.toString(),
-        'category_2': row[20]?.toString(),
-        'category_3': row[21]?.toString(),
-        'category_4': row[22]?.toString(),
-        'category_5a': row[23]?.toString(),
-        'category_5b': row[24]?.toString(),
-        'category_5c': row[25]?.toString(),
-        'category_5d': row[26]?.toString(),
-        'category_6': row[27]?.toString(),
-        'category_7a': row[28]?.toString(),
-        'category_7b': row[29]?.toString(),
-        'category_8': row[30]?.toString(),
-        'category_9': row[31]?.toString(),
-        'category_10a': row[32]?.toString(),
-        'category_10b': row[33]?.toString(),
-        'category_11a': row[34]?.toString(),
-        'category_11b': row[35]?.toString(),
-        'category_12': row[36]?.toString(),
-      };
-    }).toList();
-  }
-
+  return rows.skip(1).map((row) {
+    return {
+      'key': row[0]?.toString(),
+      'amendment_number': int.tryParse(row[1]?.toString() ?? '0'),
+      'year_previous_publication': row[2]?.toString(),
+      'year_last_publication': int.tryParse(row[3]?.toString() ?? '0'),
+      'implementation_deadline_existing': row[4]?.toString(),
+      'implementation_deadline_new': row[5]?.toString(),
+      'name_of_ifra_standard': row[6]?.toString(),
+      'cas_numbers': row[7]?.toString(),
+      'cas_numbers_comment': row[8]?.toString(),
+      'synonyms': row[9]?.toString(),
+      'ifra_standard_type': row[10]?.toString(),
+      'intrinsic_property': row[11]?.toString(),
+      'flavor_use_consideration': row[12]?.toString(),
+      'prohibited_fragrance_notes': row[13]?.toString(),
+      'phototoxicity_notes': row[14]?.toString(),
+      'restricted_ingredients_notes': row[15]?.toString(),
+      'specified_ingredients_notes': row[16]?.toString(),
+      'contributions_other_sources': row[17]?.toString(),
+      'contributions_other_sources_notes': row[18]?.toString(),
+      'category_1': row[19]?.toString(),
+      'category_2': row[20]?.toString(),
+      'category_3': row[21]?.toString(),
+      'category_4': row[22]?.toString(),
+      'category_5a': row[23]?.toString(),
+      'category_5b': row[24]?.toString(),
+      'category_5c': row[25]?.toString(),
+      'category_5d': row[26]?.toString(),
+      'category_6': row[27]?.toString(),
+      'category_7a': row[28]?.toString(),
+      'category_7b': row[29]?.toString(),
+      'category_8': row[30]?.toString(),
+      'category_9': row[31]?.toString(),
+      'category_10a': row[32]?.toString(),
+      'category_10b': row[33]?.toString(),
+      'category_11a': row[34]?.toString(),
+      'category_11b': row[35]?.toString(),
+      'category_12': row[36]?.toString(),
+      'category_0': 'Custom',  // **Auto-assign category_0**
+    };
+  }).toList();
+}
   // Helper method to classify pyramid place based on substantivity
 String _classifySubstantivity(double substantivityValue) {
   if (substantivityValue <= 0.06) {
@@ -175,30 +174,32 @@ List<Map<String, dynamic>> _parseIngredientCsv(List<List<dynamic>> rows) {
     final pyramidPlace = _classifySubstantivity(substantivity);
 
     // Extract and split synonyms
-    final synonymsString = row[6]?.toString() ?? '';
+    final synonymsString = row[9]?.toString() ?? ''; // Adjusted index for synonyms
     final List<String> synonyms = synonymsString
-        .split(', ')
+        .split(',')
         .map((synonym) => synonym.trim())
         .where((synonym) => synonym.isNotEmpty)
         .toList();
 
+    // Assign the first synonym as the preferred synonym (if available)
+    final String? preferredSynonym = synonyms.isNotEmpty ? synonyms.first : null;
+
     return {
       'name': row[1]?.toString() ?? '',
-      'cas_numbers': row[2]?.toString() ?? '',
-      'category': row[3]?.toString() ?? '', // Using `type` column as `category`
+      'cas_number': row[2]?.toString() ?? '',
+      'category': row[3]?.toString() ?? '',
       'description': row[4]?.toString() ?? '',
       'substantivity': substantivity,
-      'inventory_amount': 0.0, // Default value
-      'cost_per_gram': 0.0,    // Default value
-      'supplier': '',          // Default value
-      'acquisition_date': '',  // Default value
-      'personal_notes': '',    // Default value
-      'supplier_notes': '',    // Default value
+      'boiling_point': double.tryParse(row[6]?.toString() ?? '0.0'),
+      'vapor_pressure': double.tryParse(row[7]?.toString() ?? '0.0'),
+      'molecular_weight': double.tryParse(row[8]?.toString() ?? '0.0'),
       'pyramid_place': pyramidPlace,
-      'synonyms': synonyms,    // Parsed list of synonyms
+      'synonyms': synonyms, // Parsed list of synonyms
+      'preferred_synonym': preferredSynonym, // Assign preferred synonym
     };
   }).toList();
 }
+
 
  Future<void> ingestCsv() async {
   if (csvFile == null) {
@@ -212,6 +213,7 @@ List<Map<String, dynamic>> _parseIngredientCsv(List<List<dynamic>> rows) {
   if (selectedFeature == 'IFRA') {
     final List<Map<String, dynamic>> ifraData = _parseIfraCsv(rows);
     await _service.ingestIfraCsv(ifraData);
+
   } else if (selectedFeature == 'Ingredients') {
     final List<Map<String, dynamic>> ingredientData = _parseIngredientCsv(rows);
     await _service.ingestIngredientsCsv(ingredientData);

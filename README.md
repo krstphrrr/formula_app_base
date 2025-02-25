@@ -1,8 +1,8 @@
 # formula_app_base
 ## todo 
 
-- [ ] inventory feature has the same general structure as the ingredients table 
-    - inventory table fields: id, ingredient_id, inventory_amount, acquisition_date, personal_notes, cost_per_gram,
+- [x] inventory feature has the same general structure as the ingredients table 
+    - inventory table fields: id, ingredient_id, inventory_amount, acquisition_date, personal_notes, cost_per_gram, foreign key to ingredients table
     - ingredients table fields: id, name, cas_number, category (type), description, pyramid_place, substantivity, boiling point, vapor_pressure, molecular_weight, synonyms
             - cas_number can be null for mixtures with undisclosed ingredients
     - name on inventory can be chosen. (using ingredient_synonyms table)

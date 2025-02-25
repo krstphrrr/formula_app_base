@@ -19,15 +19,24 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDB() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, _dbName);
+  final dbPath = await getDatabasesPath();
+  final path = join(dbPath, _dbName);
 
-    return await openDatabase(
-      path,
-      version: _dbVersion,
-      onCreate: _onCreate,
-    );
-  }
+  print("Initializing database at: $path"); 
+
+  return await openDatabase(
+    path,
+    version: _dbVersion,
+    onCreate: (db, version) async {
+      print("Database is being created...");
+      await _createTables(db);
+      await _seedData(db);
+    },
+    onOpen: (db) {
+      print("Database opened successfully!");
+    },
+  );
+}
 
   Future<void> _onCreate(Database db, int version) async {
     await _createTables(db);
@@ -68,13 +77,16 @@ class DatabaseHelper {
 
     await db.execute('''
       CREATE TABLE inventory (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          ingredient_id INTEGER NOT NULL,
-          inventory_amount REAL DEFAULT 0,
-          acquisition_date TEXT,
-          personal_notes TEXT,
-          FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE
-      );
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ingredient_id INTEGER NOT NULL,
+        inventory_amount REAL DEFAULT 0,
+        acquisition_date TEXT,
+        personal_notes TEXT,
+        cost_per_gram REAL, 
+        preferred_synonym_id INTEGER, 
+        FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE,
+        FOREIGN KEY (preferred_synonym_id) REFERENCES ingredient_synonyms(id) ON DELETE SET NULL
+    );
     ''');
 
     await db.execute('''
@@ -87,8 +99,20 @@ class DatabaseHelper {
         dilution REAL DEFAULT 1.0,
         ratio REAL DEFAULT NULL,
         FOREIGN KEY (formula_id) REFERENCES formulas(id) ON DELETE CASCADE,
-        FOREIGN KEY (ingredient_id) REFERENCES ingredients(id),
-        FOREIGN KEY (accord_id) REFERENCES accords(id)
+        FOREIGN KEY (accord_id) REFERENCES accords(id),
+        FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE
+    );
+    ''');
+
+    // link between formula and inventory
+    await db.execute('''
+      CREATE TABLE formula_inventory (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        formula_id INTEGER NOT NULL,
+        inventory_id INTEGER NOT NULL,
+        amount_used REAL NOT NULL,
+        FOREIGN KEY (formula_id) REFERENCES formulas(id) ON DELETE CASCADE,
+        FOREIGN KEY (inventory_id) REFERENCES inventory(id) ON DELETE CASCADE
     );
     ''');
 
@@ -96,13 +120,16 @@ class DatabaseHelper {
       CREATE TABLE ingredients (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
-        category TEXT,
-        cost_per_gram REAL,
-        supplier TEXT,
+        cas_number TEXT,
+        category TEXT, 
         description TEXT,
-        supplier_notes TEXT,
         pyramid_place TEXT,
-        substantivity REAL
+        substantivity REAL,
+        boiling_point REAL, 
+        vapor_pressure REAL, 
+        molecular_weight REAL, 
+        preferred_synonym_id INTEGER,
+        FOREIGN KEY (preferred_synonym_id) REFERENCES ingredient_synonyms(id) ON DELETE SET NULL
       );
     ''');
 
@@ -120,8 +147,10 @@ class DatabaseHelper {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         ingredient_id INTEGER NOT NULL,
         synonym TEXT NOT NULL,
-        FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE
-      );
+        source TEXT, -- (Optional) Notes on where this synonym comes from
+        FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE,
+        UNIQUE (ingredient_id, synonym) -- Prevent duplicate synonyms per ingredient
+    );
     ''');
 
     await db.execute('''
@@ -161,6 +190,7 @@ class DatabaseHelper {
         specified_ingredients_notes TEXT,
         contributions_other_sources TEXT,
         contributions_other_sources_notes TEXT,
+        category_0 TEXT, 
         category_1 TEXT,
         category_2 TEXT,
         category_3 TEXT,
