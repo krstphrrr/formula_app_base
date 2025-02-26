@@ -30,6 +30,9 @@ dependencies:
   formula_ingredient:
     path: packages/formula_ingredient
 
+  inventory_list:
+    path: packages/inventory_list
+
   
   # path_provider: ^2.1.4 # to get db path
   # intl: ^0.20.2

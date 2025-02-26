@@ -78,14 +78,16 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE inventory (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        ingredient_id INTEGER NOT NULL,
+        ingredient_id INTEGER,
+        accord_id INTEGER,
         inventory_amount REAL DEFAULT 0,
         acquisition_date TEXT,
         personal_notes TEXT,
         cost_per_gram REAL, 
         preferred_synonym_id INTEGER, 
         FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE,
-        FOREIGN KEY (preferred_synonym_id) REFERENCES ingredient_synonyms(id) ON DELETE SET NULL
+        FOREIGN KEY (preferred_synonym_id) REFERENCES ingredient_synonyms(id) ON DELETE SET NULL,
+        FOREIGN KEY (accord_id) REFERENCES accords(id) ON DELETE CASCADE
     );
     ''');
 

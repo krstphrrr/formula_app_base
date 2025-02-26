@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:formula_list/presentation/formula_list_page.dart';
-import 'package:formula_list/state/formula_list_provider.dart';
+
 import 'package:provider/provider.dart';
 import 'package:core/providers/theme_provider.dart';
 import 'package:settings_data/presentation/settings_data_page.dart';
 
 import 'package:settings_data/settings_data.dart';
 import 'package:formula_list/formula_list.dart';
+import 'package:inventory_list/inventory_list.dart';
 
 class MainNavBar extends StatefulWidget {
   @override
@@ -133,7 +133,7 @@ Widget build(BuildContext context) {
             //     key: GlobalKey<NavigatorState>(),
             //     onGenerateRoute: (settings) {
             //       return MaterialPageRoute(
-            //         builder: (context) => FormulaListPage(),
+            //         builder: (context) => InventoryListPage(),
             //       );
             //     },
             //   ),
@@ -156,19 +156,14 @@ Widget build(BuildContext context) {
                   );
                 },
               ),
-              Builder(
-                builder: (newContext) => Navigator(
-                  key: GlobalKey<NavigatorState>(),
-                  onGenerateRoute: (settings) {
-                    return MaterialPageRoute(
-                      builder: (newContext) => _PlaceholderPage(
-                        title: 'Ingredients',
-                        color: Theme.of(context).primaryColor,
-                      ),
-                    );
-                  },
-                ),
-              ),
+              Navigator(
+      key: GlobalKey<NavigatorState>(),
+      onGenerateRoute: (settings) {
+        return MaterialPageRoute(
+          builder: (context) => InventoryListPage(), // ✅ Use Inventory List Page
+        );
+      },
+    ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
