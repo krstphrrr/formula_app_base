@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:inventory_list/inventory_list.dart';
 
@@ -55,29 +56,35 @@ class InventoryListProvider extends ChangeNotifier {
   }
 
   // methods
-  Future<void> fetchInventory() async {
-    _isLoading = true;
-    _hasError = false;
-    notifyListeners();
-    try {
-        _inventoryItems = await _service.fetchInventory();
-        _filteredInventory = _inventoryItems;
+Future<void> fetchInventory() async {
+  if (_isLoading) return; 
+  _isLoading = true;
 
-        // Assign colors based on category if available
-        for (var item in _inventoryItems) {
-            final category = item['category'];
-            if (_categoryColors.containsKey(category)) {
-                item['color'] = _categoryColors[category];
-            }
+  try {
+    final newInventory = await _service.fetchInventory(); 
+
+    if (!listEquals(_inventoryItems, newInventory)) { 
+      _inventoryItems = newInventory;
+      _filteredInventory = List.from(newInventory); 
+
+      // Assign colors based on category if available
+      for (var item in _inventoryItems) {
+        final category = item['category'];
+        if (_categoryColors.containsKey(category)) {
+          item['color'] = _categoryColors[category];
         }
-    } catch (e) {
-        _hasError = true;
-        print("Error loading inventory: $e");
-    } finally {
-        _isLoading = false;
-        notifyListeners();
+      }
+
+      notifyListeners(); 
     }
+  } catch (e) {
+    _hasError = true;
+    print("Error loading inventory: $e");
+  } finally {
+    _isLoading = false;
+  }
 }
+
 
 
   Future<void> deleteInventoryItem(int inventoryItemId) async {

@@ -127,45 +127,38 @@ Widget build(BuildContext context) {
         ),
       ),
       body: IndexedStack(
-        index: _currentIndex,
-        children: [
-            //  Navigator(
-            //     key: GlobalKey<NavigatorState>(),
-            //     onGenerateRoute: (settings) {
-            //       return MaterialPageRoute(
-            //         builder: (context) => InventoryListPage(),
-            //       );
-            //     },
-            //   ),
-            Consumer<FormulaListProvider>(
-                builder: (context, formulaListProvider, child) {
-                  return Scaffold(
-                    body: IndexedStack(
-                      index: _currentIndex,
-                      children: [
-                        Navigator(
-                          key: GlobalKey<NavigatorState>(),
-                          onGenerateRoute: (settings) {
-                            return MaterialPageRoute(
-                              builder: (context) => FormulaListPage(),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              Navigator(
-      key: GlobalKey<NavigatorState>(),
-      onGenerateRoute: (settings) {
-        return MaterialPageRoute(
-          builder: (context) => InventoryListPage(), // ✅ Use Inventory List Page
+  index: _currentIndex,
+  children: [
+    
+    Consumer<FormulaListProvider>(
+      builder: (context, formulaListProvider, child) {
+        return Navigator(
+          key: GlobalKey<NavigatorState>(),
+          onGenerateRoute: (settings) {
+            return MaterialPageRoute(
+              builder: (context) => FormulaListPage(),
+            );
+          },
         );
       },
     ),
-        ],
-      ),
+
+    
+    Consumer<InventoryListProvider>(
+      builder: (context, inventoryListProvider, child) {
+        return Navigator(
+          key: GlobalKey<NavigatorState>(),
+          onGenerateRoute: (settings) {
+            return MaterialPageRoute(
+              builder: (context) => InventoryListPage(), 
+            );
+          },
+        );
+      },
+    ),
+  ],
+),
+
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: onTabTapped,

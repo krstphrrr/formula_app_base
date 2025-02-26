@@ -33,16 +33,16 @@ class FormulaListProvider extends ChangeNotifier {
   // methods
 
 Future<void> fetchFormulas() async {
-  if (_isLoading) return; // ✅ Prevent multiple calls
+  if (_isLoading) return; 
   _isLoading = true;
 
-  final newFormulas = await _service.fetchFormulas(); // Fetch new data
+  final newFormulas = await _service.fetchFormulas();
 
-  if (!listEquals(_formulas, newFormulas)) { // ✅ Only update if there are actual changes
+  if (!listEquals(_formulas, newFormulas)) { 
     _formulas = newFormulas;
-    _filteredFormulas = List.from(newFormulas); // ✅ Update filtered list
+    _filteredFormulas = List.from(newFormulas); 
 
-    notifyListeners(); // ✅ Only trigger UI updates when data actually changes
+    notifyListeners(); 
   }
 
   _isLoading = false;
