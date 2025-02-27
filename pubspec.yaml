@@ -33,13 +33,16 @@ dependencies:
   inventory_list:
     path: packages/inventory_list
 
+  settings_category:
+    path: packages/settings_category
+
   
   # path_provider: ^2.1.4 # to get db path
   # intl: ^0.20.2
     # Use the latest version available 
   # open_file_plus: 3.4.1+1
   permission_handler: ^11.3.1
-  flex_color_picker: ^3.6.0
+  # flex_color_picker: ^3.6.0
   window_manager: ^0.4.3
   file_picker: ^9.0.0
 

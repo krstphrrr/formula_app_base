@@ -8,6 +8,7 @@ import 'package:settings_data/settings_data.dart' as settings_data;
 
 import 'package:formula_ingredient/formula_ingredient.dart' as formula_ingredient;
 import 'package:inventory_list/inventory_list.dart' as inventory_list;
+import 'package:settings_category/settings_category.dart' as settings_category;
 
 typedef FeatureLoaderFunction = List<ChangeNotifierProvider> Function(Database db);
 
@@ -18,6 +19,7 @@ class FeatureLoader {
     formula_ingredient.loadFeatureProviders,
     inventory_list.loadFeatureProviders,
     settings_data.loadFeatureProviders,
+    settings_category.loadFeatureProviders,
   ];
 
 static List<ChangeNotifierProvider<ChangeNotifier>> loadProviders(Database db) {
