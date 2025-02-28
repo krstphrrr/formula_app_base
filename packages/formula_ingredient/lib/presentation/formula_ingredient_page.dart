@@ -23,115 +23,150 @@ class _FormulaIngredientPageState extends State<FormulaIngredientPage> {
   late Future<void> complianceCheckFuture;
 
   @override
-  void initState() {
-    super.initState();
+void initState() {
+  super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final formulaIngredientProvider =
-          Provider.of<FormulaIngredientProvider>(context, listen: false);
-      // formulaIngredientProvider.currentFormulaId = widget.formula['id'];
-      // formulaIngredientProvider.formulaDisplayName = widget.formula['name'];
-      // formulaIngredientProvider.fetchFormulaIngredients(widget.formula['id']);
-      formulaIngredientProvider.setFormula(widget.formula);
-      formulaIngredientProvider.fetchAvailableIngredients();
-      formulaIngredientProvider.calculateTotalAmount();
-      if (formulaIngredientProvider.isTargetTotalEnabled) {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final formulaIngredientProvider =
+        Provider.of<FormulaIngredientProvider>(context, listen: false);
+    formulaIngredientProvider.setFormula(widget.formula);
+    formulaIngredientProvider.fetchAvailableIngredients();
+    formulaIngredientProvider.calculateTotalAmount();
+
+    // Print debug statement to check if editing an accord
+    if (formulaIngredientProvider.isAccordFormula) {
+      print("DEBUG: Editing an Accord - ${formulaIngredientProvider.formulaDisplayName}");
+    } else {
+      print("DEBUG: Editing a Regular Formula - ${formulaIngredientProvider.formulaDisplayName}");
+    }
+
+    if (formulaIngredientProvider.isTargetTotalEnabled) {
       complianceCheckFuture = formulaIngredientProvider.checkIfraCompliance();
     } else {
       complianceCheckFuture = Future.value();
     }
-   
-    });
+  });
+}
+
+ void _showAddIngredientModal(BuildContext context, {required bool isAccord}) {
+  final formulaIngredientProvider = Provider.of<FormulaIngredientProvider>(context, listen: false);
+  
+  // Decide which list to use based on isAccord flag
+  List<Map<String, dynamic>> options = isAccord
+      ? formulaIngredientProvider.availableAccords
+      : formulaIngredientProvider.availableIngredients;
+
+  // Ensure search filtering applies to correct list
+  void updateSearch(String query) {
+    if (isAccord) {
+      formulaIngredientProvider.filterAvailableAccords(query);
+    } else {
+      formulaIngredientProvider.filterAvailableIngredients(query);
+    }
   }
 
- void _showAddIngredientModal(BuildContext context) {
-  final formulaIngredientProvider = Provider.of<FormulaIngredientProvider>(context, listen: false);
-
   showModalBottomSheet(
-  context: context,
-  isScrollControlled: true,
-  shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-  ),
-  builder:(BuildContext context) {
-    return PopScope(
-      canPop: false, // Disable the default back button behavior
-      onPopInvokedWithResult: (context, result) {
-        print("attempting to pop out");
-      },
-      child:  DraggableScrollableSheet(
-      initialChildSize: 0.5,
-      minChildSize: 0.3,
-      maxChildSize: 0.75,
-      expand: false,
-      builder: (context, scrollController) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // Draggable Handle
-                Container(
-                  width: 50,
-                  height: 5,
-                  margin: const EdgeInsets.only(bottom: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                TextField(
-                  controller: formulaIngredientProvider.searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search ingredients by name',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+    context: context,
+    isScrollControlled: true,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (BuildContext context) {
+      return DraggableScrollableSheet(
+        initialChildSize: 0.5,
+        minChildSize: 0.3,
+        maxChildSize: 0.75,
+        expand: false,
+        builder: (context, scrollController) {
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // Draggable Handle
+                  Container(
+                    width: 50,
+                    height: 5,
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[400],
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onChanged: (value) {
-                    formulaIngredientProvider.filterAvailableIngredients(value);
-                  },
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: Consumer<FormulaIngredientProvider>(
-                    builder: (context, provider, child) {
-                      return ListView.builder(
-                        controller: scrollController,
-                        itemCount: provider.filteredIngredients.length,
-                        itemBuilder: (context, index) {
-                          final ingredient = provider.filteredIngredients[index];
-                          return ListTile(
-                            title: Text(ingredient['name']),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.add),
-                              onPressed: () {
-                                final selectedIngredient = provider.filteredIngredients[index];
-                                provider.addIngredientRow(context, selectedIngredient['id']);
-                                Navigator.pop(context);
-                              },
+                  
+                  // Title based on selection
+                  Text(
+                    isAccord ? 'Select an Accord' : 'Select an Ingredient',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Search bar
+                  TextField(
+                    controller: formulaIngredientProvider.searchController,
+                    decoration: InputDecoration(
+                      hintText: isAccord ? 'Search accords...' : 'Search ingredients...',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onChanged: updateSearch,
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // List of ingredients or accords
+                  Expanded(
+                    child: Consumer<FormulaIngredientProvider>(
+                      builder: (context, provider, child) {
+                        final list = isAccord ? provider.filteredAccords : provider.filteredIngredients;
+
+                        if (list.isEmpty) {
+                          return Center(
+                            child: Text(
+                              isAccord ? 'No accords available' : 'No ingredients available',
+                              style: TextStyle(color: Colors.grey),
                             ),
                           );
-                        },
-                      );
-                    },
+                        }
+
+                        return ListView.builder(
+                          controller: scrollController,
+                          itemCount: list.length,
+                          itemBuilder: (context, index) {
+                            final item = list[index];
+                            return ListTile(
+                              title: Text(item['name']),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.add),
+                                onPressed: () {
+                                  provider.addIngredientRow(context, item['id'], isAccord: isAccord);
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    ));
-  },
-);
-
-
+          );
+        },
+      );
+    },
+  );
 }
+
+
+
 
   // Function to open the export options dialog
   void _showExportDialog() {
@@ -178,6 +213,41 @@ class _FormulaIngredientPageState extends State<FormulaIngredientPage> {
       },
     );
   }
+void _showAddIngredientSelectionDialog(BuildContext context) {
+  final formulaIngredientProvider = Provider.of<FormulaIngredientProvider>(context, listen: false);
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text("Select Type"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text("Ingredient"),
+              enabled: formulaIngredientProvider.availableIngredients.isNotEmpty,
+              onTap: () {
+                Navigator.pop(context);
+                _showAddIngredientModal(context, isAccord: false);
+              },
+            ),
+            ListTile(
+              title: Text("Accord"),
+              enabled: !formulaIngredientProvider.isAccordFormula && formulaIngredientProvider.availableAccords.isNotEmpty,
+              onTap: () {
+                Navigator.pop(context);
+                _showAddIngredientModal(context, isAccord: true);
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+
 
 
   @override
@@ -187,8 +257,11 @@ class _FormulaIngredientPageState extends State<FormulaIngredientPage> {
       appBar: AppBar(
         title: Consumer<FormulaIngredientProvider>(
         builder: (context, provider, child) {
-          return Text(provider.formulaDisplayName ?? 'Loading...');
-        },
+      String title = provider.isAccordFormula
+          ? "Editing Accord: ${provider.formulaDisplayName}"
+          : provider.formulaDisplayName;
+      return Text(title ?? 'Loading...');
+    },
       ),
 
         actions: [
@@ -235,23 +308,25 @@ class _FormulaIngredientPageState extends State<FormulaIngredientPage> {
     const SizedBox(width: 20), // Add space between IFRA Check and Input Mode toggle
 
     // Input Mode Toggle
-    const Text("Input:"),
-    Switch(
-      value: formulaIngredientProvider.isRatioInput,
-      onChanged: formulaIngredientProvider.isInputModeLocked
-          ? null // Disable the switch if the input mode is locked
-          : (bool value) {
-              formulaIngredientProvider.toggleRatioInput(context, value);
-            },
-    ),
-    Text(
-      formulaIngredientProvider.isRatioInput ? "Ratios" : "Amounts",
-      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: formulaIngredientProvider.isInputModeLocked
-                ? Colors.grey
-                : null,
-          ),
-    ),
+    // Input Mode Toggle (Disable switch if editing an accord)
+      const Text("Input:"),
+      Switch(
+        value: formulaIngredientProvider.isAccordFormula || formulaIngredientProvider.isRatioInput,
+        onChanged: formulaIngredientProvider.isAccordFormula || formulaIngredientProvider.isInputModeLocked
+            ? null // Disable switch if the formula is an accord
+            : (bool value) {
+                formulaIngredientProvider.toggleRatioInput(context, value);
+              },
+      ),
+      Text(
+        formulaIngredientProvider.isAccordFormula || formulaIngredientProvider.isRatioInput
+            ? "Ratios"
+            : "Amounts",
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: formulaIngredientProvider.isInputModeLocked ? Colors.grey : null,
+            ),
+      ),
+
 
     // Add Sorting Dropdown
     Spacer(), // Push the dropdown to the right
@@ -306,16 +381,18 @@ class _FormulaIngredientPageState extends State<FormulaIngredientPage> {
                             itemCount: formulaIngredientProvider
                                 .formulaIngredients.length,
                             itemBuilder: (context, index) {
+                              
                               if (index >= formulaIngredientProvider.formulaIngredients.length ||
                                   index >= formulaIngredientProvider.amountControllers.length ||
                                   index >= formulaIngredientProvider.dilutionControllers.length) {
                                 return SizedBox.shrink(); // Prevents accessing invalid indices
                               }
+                               // Read-only if this is part of an accord
                               //  access controllers safely
                               //     if (index < formulaIngredientProvider.amountControllers.length &&
                               //  index < formulaIngredientProvider.dilutionControllers.length) {
-                              final ingredient = formulaIngredientProvider
-                                  .formulaIngredients[index];
+                              final ingredient = formulaIngredientProvider.formulaIngredients[index];
+                              bool isPartOfAccord = ingredient['is_accord_ingredient'] == true;
                               final amountController = formulaIngredientProvider
                                   .amountControllers[index];
                               final dilutionController =
@@ -356,36 +433,59 @@ class _FormulaIngredientPageState extends State<FormulaIngredientPage> {
                               if (formulaIngredientProvider.isRatioInput) {
                                 return FormulaIngredientListItemRatio(
                                   title: ingredient['name'],
-                                  ratioFocusNode: ratioFocusNode,
+                                  // ratioFocusNode: ratioFocusNode,
+                                  ratioFocusNode: isPartOfAccord ? null : formulaIngredientProvider.ratioFocusNodes[index],
+
                                   ratioController: ratioController,
                                   isCompliant: formulaIngredientProvider.isIngredientCompliant(index),
                                   categoryColor: ingredient['categoryColor'],
-                                  onChangedRatio: (value) {
-                                    formulaIngredientProvider.handleRatioChange(index,value);
+                                  // onChangedRatio: (value) {
+                                  //   formulaIngredientProvider.handleRatioChange(index,value);
+                                  // },
+                                  onChangedRatio: isPartOfAccord ? (value) {} : (value) {
+                                      formulaIngredientProvider.handleRatioChange(index, value);
                                   },
-                                  onDeletePressed: () => formulaIngredientProvider.removeIngredient(index),
-                                );
-                              } else {
+                                //   onDeletePressed: () => formulaIngredientProvider.removeIngredient(index),
+                                // );
+                                      onDeletePressed: isPartOfAccord ? () {} : () {
+                                        formulaIngredientProvider.removeIngredient(index);
+                                      },
+                                    );
+                                  } else {
                                 return FormulaIngredientListItem(
                                 title: ingredient['name'],
                                 amountController: amountController,
                                 dilutionController: dilutionController,
                                 relativeAmountText:
                                     (relativeAmount * 100).toStringAsFixed(2),
-                                amountFocusNode: amountFocusNode,
-                                dilutionFocusNode: dilutionFocusNode,
+                                // amountFocusNode: amountFocusNode,
+                                amountFocusNode: isPartOfAccord ? null : formulaIngredientProvider.amountFocusNodes[index],
+                                // dilutionFocusNode: dilutionFocusNode,
+                                dilutionFocusNode: isPartOfAccord ? null : formulaIngredientProvider.dilutionFocusNodes[index],
+
                                 isCompliant: formulaIngredientProvider.isIngredientCompliant(index),
                                 categoryColor: ingredient['categoryColor'],
-                                onChangedAmount: (value){
-                                    formulaIngredientProvider.handleAmountChange(index, value);
-                                  },
-                                  onChangedDilution: (value){
-                                  formulaIngredientProvider.handleDilutionChange(index, value);
+                                // onChangedAmount: (value){
+                                //     formulaIngredientProvider.handleAmountChange(index, value);
+                                //   },
+                                onChangedAmount: isPartOfAccord ? (value) {} : (value) {
+                                  formulaIngredientProvider.handleAmountChange(index, value);
+                                },
+                                //   onChangedDilution: (value){
+                                //   formulaIngredientProvider.handleDilutionChange(index, value);
+                                // },
+                                onChangedDilution: (value) {
+                                  if (!isPartOfAccord) {
+                                    formulaIngredientProvider.handleDilutionChange(index, value);
+                                  }
                                 },
                                 
-                                onDeletePressed: () {
-                                  formulaIngredientProvider
-                                      .removeIngredient(index);
+                                // onDeletePressed: () {
+                                //   formulaIngredientProvider
+                                //       .removeIngredient(index);
+                                // },
+                                onDeletePressed: isPartOfAccord ? () {} : () {
+                                  formulaIngredientProvider.removeIngredient(index);
                                 },
                               );
                             }              
@@ -399,33 +499,50 @@ class _FormulaIngredientPageState extends State<FormulaIngredientPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // FloatingActionButton(
+                //   heroTag: "iterFab",
+                //   onPressed: () async {
+                //     final formulaIngredientProvider =
+                //         Provider.of<FormulaIngredientProvider>(context,
+                //             listen: false);
+                //     // await formulaIngredientProvider.saveAllChanges(formulaIngredientProvider.currentFormulaId!);
+                //     await formulaIngredientProvider.iterateOnFormula(context);
+                //     ScaffoldMessenger.of(context).showSnackBar(
+                //       SnackBar(content: Text('Iterating on formula ${formulaIngredientProvider.currentFormula!['name']}')),
+                //     );
+                //   },
+                //   child: const Icon(Icons.copy_all_rounded),
+                //   mini: true,
+                // ),
                 FloatingActionButton(
                   heroTag: "iterFab",
-                  onPressed: () async {
-                    final formulaIngredientProvider =
-                        Provider.of<FormulaIngredientProvider>(context,
-                            listen: false);
-                    // await formulaIngredientProvider.saveAllChanges(formulaIngredientProvider.currentFormulaId!);
-                    await formulaIngredientProvider.iterateOnFormula(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Iterating on formula ${formulaIngredientProvider.currentFormula!['name']}')),
-                    );
-                  },
+                  onPressed: formulaIngredientProvider.isAccordFormula
+                      ? null // Disable if editing an accord
+                      : () async {
+                          await formulaIngredientProvider.iterateOnFormula(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Iterating on formula ${formulaIngredientProvider.currentFormula!['name']}')),
+                          );
+                        },
                   child: const Icon(Icons.copy_all_rounded),
                   mini: true,
                 ),
                 FloatingActionButton.extended(
                   heroTag: "addFab",
                   onPressed: () {
-                    final formulaIngredientProvider =
-                        Provider.of<FormulaIngredientProvider>(context,
-                            listen: false);
-                    _showAddIngredientModal(context);
-                    // formulaIngredientProvider.addIngredientRow(context);
+                    final formulaIngredientProvider = Provider.of<FormulaIngredientProvider>(context, listen: false);
+
+                    // If editing an accord, directly show ingredient selection
+                    if (formulaIngredientProvider.isAccordFormula) {
+                      _showAddIngredientModal(context, isAccord: false);
+                    } else {
+                      _showAddIngredientSelectionDialog(context);
+                    }
                   },
                   icon: const Icon(Icons.add),
-                  label: const Text('Add Ingredient'),
+                  label: Text(formulaIngredientProvider.isAccordFormula ? 'Add Ingredient' : 'Add Ingredient/Accord'),
                 ),
+
               ],
             ),
           ),

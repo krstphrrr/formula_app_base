@@ -80,10 +80,9 @@ Future<List<String>> fetchCasNumbers(int ingredientId) async {
     return await _repository.fetchCasNumbers(ingredientId);
   }
 
-   Future<Map<String, dynamic>?> fetchFormulaITER(int id) async {
-
-    return await _repository.fetchFormulaITER(id);
-  }
+   Future<Map<String, dynamic>?> fetchFormulaById(int formulaId) async {
+  return await _repository.fetchFormulaById(formulaId);
+}
 
       Future<int?> saveFormulaToDatabase(Map<String, dynamic> formula) async {
       return await _repository.saveFormulaToDatabase(formula);
@@ -208,6 +207,20 @@ print(filePath);
 
   Future<String?> getCategoryColor(String categoryName) async {
   return await _repository.getCategoryColor(categoryName);
+}
+
+
+Future<List<Map<String, dynamic>>> fetchAvailableAccords() async {
+  return await _repository.fetchAvailableAccords();
+}
+
+
+Future<List<Map<String, dynamic>>> fetchAccordIngredients(int accordId) async {
+  return await _repository.fetchAccordIngredients(accordId);
+}
+
+Future<void> addAccordIngredient(int accordId, int ingredientId, double ratio) async {
+  return await _repository.addAccordIngredient(accordId, ingredientId, ratio);
 }
 
 

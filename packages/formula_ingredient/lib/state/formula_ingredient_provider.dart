@@ -74,6 +74,36 @@ String get selectedSortOption => _selectedSortOption;
 bool _isReverseSort = false;
 bool get isReverseSort => _isReverseSort;
 
+List<Map<String, dynamic>> _availableAccords = [];
+List<Map<String, dynamic>> get availableAccords => _availableAccords;
+
+List<Map<String, dynamic>> _filteredAccords = [];
+List<Map<String, dynamic>> get filteredAccords => _filteredAccords;
+
+
+bool _isAccordFormula = false;
+bool get isAccordFormula => _isAccordFormula;
+
+Future<void> setFormula(Map<String, dynamic> formula) async {
+  _currentFormulaId = formula['id'];
+  _formulaDisplayName = formula['name'];
+  _currentFormula = formula;
+
+  // Determine if the formula is an accord
+  _isAccordFormula = (formula['type'] == 'Accord');
+
+  notifyListeners();
+
+  // Fetch data
+  await fetchFormulaIngredients(formula['id']);
+  await fetchAvailableIngredients();
+  await fetchAvailableAccords();
+  calculateTotalAmount();
+
+  if (_isTargetTotalEnabled) {
+    await checkIfraCompliance();
+  }
+}
    set currentFormulaId(int? value) {
     // if (_currentFormula!['formula_id'] != null) {
     _currentFormulaId = value;
@@ -106,6 +136,153 @@ void dispose() {
     _targetTotalAmount = value;
     notifyListeners();
   }
+
+  Future<void> fetchAvailableAccords() async {
+  _availableAccords = await _service.fetchAvailableAccords();
+  print("DEBUG: Available Accords Loaded: $_availableAccords");
+  notifyListeners();
+}
+
+Future<void> saveFormulaIngredients() async {
+  if (_currentFormulaId == null) {
+    print("ERROR: No formula ID found, cannot save.");
+    return;
+  }
+
+  print("DEBUG: Saving Formula Ingredients for Formula ID: $_currentFormulaId");
+
+  for (var ingredient in _formulaIngredients) {
+    final ingredientId = ingredient['ingredient_id'];
+    final amount = ingredient['amount'];
+    final dilution = ingredient['dilution'];
+    final ratio = ingredient['ratio'] ?? 0.0; // Default ratio to 0.0 if null
+
+    print("DEBUG: Preparing to save ingredient ID: $ingredientId | Amount: $amount | Dilution: $dilution | Ratio: $ratio");
+
+    try {
+      if (_isAccordFormula) {
+        print("DEBUG: Saving as an Accord Formula.");
+        await _service.addAccordIngredient(
+          _currentFormulaId!,
+          ingredientId,
+          ratio, // Save the ratio instead of amount
+        );
+      } else {
+        await _service.addFormulaIngredient(
+          _currentFormulaId!,
+          ingredientId,
+          amount,
+          dilution,
+        );
+      }
+      print("SUCCESS: Ingredient $ingredientId saved successfully.");
+    } catch (e) {
+      print("ERROR: Failed to save ingredient $ingredientId - $e");
+    }
+  }
+}
+
+
+
+void addAccordToFormula(int accordId, double accordAmount) async {
+  final accordIngredients = await _service.fetchAccordIngredients(accordId);
+    print("DEBUG: Adding Accord ID: $accordId to Formula ID: $_currentFormulaId");
+
+
+  // Get total weight of the accord
+  final double totalAccordWeight = accordIngredients.fold(0.0, (sum, item) => sum + item['ratio']);
+
+   if (totalAccordWeight == 0) {
+    print("DEBUG: Skipping Accord Addition (Total Weight is 0)");
+    return;
+  }
+
+  // Add the accord itself as a row
+  _formulaIngredients.add({
+    'ingredient_id': accordId,
+    'amount': accordAmount,
+    'dilution': 1.0,
+    'name': "Accord - ${accordIngredients.first['name']}",
+    'is_accord': true,
+  });
+
+  _amountControllers.add(TextEditingController(text: accordAmount.toString()));
+  _dilutionControllers.add(TextEditingController(text: "1.0"));
+
+  // Add accord ingredients, adjusting for the new accord amount
+  for (var ingredient in accordIngredients) {
+    double ingredientAmount = (ingredient['ratio'] / totalAccordWeight) * accordAmount;
+
+    _formulaIngredients.add({
+      'ingredient_id': ingredient['ingredient_id'],
+      'amount': ingredientAmount,
+      'dilution': 1.0,
+      'name': ingredient['name'],
+      'is_accord_ingredient': true,
+      'parent_accord_id': accordId,
+    });
+
+        print("DEBUG: Accord Ingredient Added - ${ingredient['name']} | Calculated Amount: $ingredientAmount");
+
+
+    _amountControllers.add(TextEditingController(text: ingredientAmount.toString()));
+  }
+
+  notifyListeners();
+}
+
+
+void filterAvailableAccords(String query) {
+  if (query.isEmpty) {
+    _filteredAccords = List.from(_availableAccords);
+  } else {
+    _filteredAccords = _availableAccords.where((accord) {
+      final name = accord['name']?.toLowerCase() ?? '';
+      return name.contains(query.toLowerCase());
+    }).toList();
+  }
+  notifyListeners();
+}
+
+// void addAccordToFormula(int accordId, double accordAmount) async {
+//   final accordIngredients = await _service.fetchAccordIngredients(accordId);
+
+//   // Ensure total weight is correct
+//   final double totalAccordWeight = accordIngredients.fold(0.0, (sum, item) => sum + item['amount']);
+
+//   if (totalAccordWeight == 0) return;
+
+//   // Add the accord as a single row
+//   _formulaIngredients.add({
+//     'ingredient_id': accordId,
+//     'amount': accordAmount,
+//     'dilution': 1.0,
+//     'name': "Accord - ${accordIngredients.first['accord_name']}",
+//     'is_accord': true,
+//   });
+
+//   _amountControllers.add(TextEditingController(text: accordAmount.toString()));
+//   _dilutionControllers.add(TextEditingController(text: "1.0"));
+
+//   // Add individual ingredients from the accord
+//   for (var ingredient in accordIngredients) {
+//     double ingredientAmount = (ingredient['amount'] / totalAccordWeight) * accordAmount;
+
+//     _formulaIngredients.add({
+//       'ingredient_id': ingredient['ingredient_id'],
+//       'amount': ingredientAmount,
+//       'dilution': 1.0,
+//       'name': ingredient['name'],
+//       'is_accord_ingredient': true, // Mark it as part of an accord
+//       'parent_accord_id': accordId,
+//     });
+
+//     _amountControllers.add(TextEditingController(text: ingredientAmount.toString()));
+//   }
+
+//   notifyListeners();
+// }
+
 
   void toggleTargetTotalEnabled(bool isEnabled) async {
     _isTargetTotalEnabled = isEnabled;
@@ -191,28 +368,46 @@ clearState(){
 _ratioControllers.clear();
 }
 
-Future<void> setFormula(Map<String, dynamic> formula) async {
-  _currentFormulaId = formula['id'];
-  _formulaDisplayName = formula['name'];
-  _currentFormula = formula;
-  print("FORMULA: $_currentFormula");	
+// Future<void> setFormula(Map<String, dynamic> formula) async {
+//   _currentFormulaId = formula['id'];
+//   _formulaDisplayName = formula['name'];
+//   _currentFormula = formula;
+//   print("FORMULA: $_currentFormula");	
 
-  notifyListeners();
+//   notifyListeners();
 
-  // Fetch related data after setting the current formula
-  await fetchFormulaIngredients(formula['id']);
-  await fetchAvailableIngredients();
-  calculateTotalAmount();
+//   // Fetch related data after setting the current formula
+//   await fetchFormulaIngredients(formula['id']);
+//   await fetchAvailableIngredients();
+//   calculateTotalAmount();
 
-  if (_isTargetTotalEnabled) {
-    await checkIfraCompliance();
-  }
-}
+//   if (_isTargetTotalEnabled) {
+//     await checkIfraCompliance();
+//   }
+// }
 
 Future<void> fetchFormulaIngredients(int formulaId) async {
   clearState();
+  print("DEBUG: Fetching formula ingredients for formula ID: $formulaId");
+
+  List<Map<String, dynamic>> ingredients;
+
+  // ✅ Ensure `_isAccordFormula` is set before fetching ingredients
+  // if (_currentFormula == null) {
+    print("DEBUG: Fetching formula details to determine formula type.");
+    await fetchFormula(formulaId);
+  // }
+
+  if (_isAccordFormula) {
+    print("DEBUG: Pulling ingredients from accord_ingredients (Accord Formula)");
+    _formulaIngredients = await _service.fetchAccordIngredients(formulaId);
+  } else {
+    print("DEBUG: Pulling ingredients from formula_ingredient (Regular Formula)");
+    _formulaIngredients = await _service.fetchFormulaIngredients(formulaId);
+  }
+
   // Fetch ingredients from the service
-  var ingredients = await _service.fetchFormulaIngredients(formulaId);
+   ingredients = await _service.fetchFormulaIngredients(formulaId);
   // _formulaIngredients = ingredients.map((ingredient) => Map<String, dynamic>.from(ingredient)).toList();
    _formulaIngredients = await Future.wait(ingredients.map((ingredient) async {
     print("INGREDIENT: $ingredient");
@@ -225,7 +420,7 @@ Future<void> fetchFormulaIngredients(int formulaId) async {
 
     // Parse the hex string into a `Color` object, defaulting to light gray if null or invalid
    final categoryColor = (hexColor != null && hexColor.isNotEmpty)
-    ? Color(int.tryParse(hexColor.replaceFirst('#', '0xFF')) ?? 0xFFCCCCCC) // Handle parsing failure
+    ? Color(int.tryParse(hexColor.replaceFirst('#', '0xFF')) ?? 0xFFCCCCCC)
     : const Color(0xFFCCCCCC);
 
     return {
@@ -235,6 +430,26 @@ Future<void> fetchFormulaIngredients(int formulaId) async {
   }).toList());
 
   print("FORMULA INGREDIENTS: $_formulaIngredients");
+_formulaIngredients = []; // Clear before adding new data
+  _amountControllers.clear();
+  _dilutionControllers.clear();
+  _ratioControllers.clear();
+
+  for (var ingredient in ingredients) {
+    final mutableIngredient = Map<String, dynamic>.from(ingredient); // ✅ Ensure it’s mutable
+
+    if (_formulaIngredients.any((existing) => existing['ingredient_id'] == mutableIngredient['ingredient_id'])) {
+      print("WARNING: Duplicate ingredient detected, skipping: ${mutableIngredient['name']}");
+      continue;
+    }
+
+    _formulaIngredients.add(mutableIngredient);
+    _amountControllers.add(TextEditingController(text: mutableIngredient['amount']?.toString() ?? '0.0'));
+    _dilutionControllers.add(TextEditingController(text: mutableIngredient['dilution']?.toString() ?? '1.0'));
+    _ratioControllers.add(TextEditingController(text: mutableIngredient['ratio']?.toString() ?? '0.0'));
+  }
+
+  print("DEBUG: Loaded ${_formulaIngredients.length} ingredients into formula.");
 
   // Check if there are any ingredients
   if (_formulaIngredients.isNotEmpty) {
@@ -283,6 +498,7 @@ Future<void> fetchFormulaIngredients(int formulaId) async {
   checkIfraCompliance();
   notifyListeners();
 }
+
 bool isIngredientCompliant(int index) {
   if (!_isTargetTotalEnabled) return true; // Always compliant if IFRA check is disabled
   return !(_formulaIngredients[index]['is_exceeding_limit'] ?? false);
@@ -291,12 +507,13 @@ bool isIngredientCompliant(int index) {
 
   Future<void> checkIfraCompliance() async {
   // Only perform compliance check if target total is enabled
-  if (!_isTargetTotalEnabled) return;
+  if (!_isTargetTotalEnabled) return; 
+  // ALSO RETURN IF CATEGORY_0
 
   _ifraFormula = await _service.fetchFormulaForIFRA(_currentFormulaId!);
-  print("INSIDE IFRA: $_ifraFormula");
+  // print("INSIDE IFRA: $_ifraFormula");
   final String? selectedCategory = _ifraFormula!['type'];
-  print("category: $selectedCategory");
+  // print("category: $selectedCategory");
 
   if (selectedCategory == null || selectedCategory.isEmpty) {
     return; // No category selected, nothing to check
@@ -317,7 +534,7 @@ bool isIngredientCompliant(int index) {
 
   for (var ingredient in _formulaIngredients) {
     final int ingredientId = ingredient['ingredient_id'];
-    print("Ingredient: $ingredient");
+    print("Ingredientsss: $ingredient");
 
     // Query CAS numbers for the ingredient
     final List<String> casNumbers = await _service.fetchCasNumbers(ingredientId);
@@ -339,7 +556,7 @@ bool isIngredientCompliant(int index) {
 
       for (String casNumber in casNumbers) {
         if (ifraCasNumbers.contains(casNumber.trim())) {
-          print("Matched CAS Number: $casNumber");
+          // print("Matched CAS Number: $casNumber");
           final double allowedLimit = double.tryParse(ifraStandard[selectedCategory]) ?? double.infinity;
 
           print("Ingredient Relative Amount: $relativeAmount%");
@@ -432,7 +649,18 @@ Future<void> addIngredientToFormula(int ingredientId) async {
   await checkIfraCompliance();
 }
 
-void addIngredientRow(BuildContext context, int ingredientId) async {
+void addIngredientRow(BuildContext context, int ingredientId, {bool isAccord = false}) async {
+  // Check if the ingredient already exists
+  final existingIndex = _formulaIngredients.indexWhere((ingredient) => 
+    ingredient['ingredient_id'] == ingredientId && ingredient['is_accord'] == false
+  );
+
+  // Prevent duplicate non-accord ingredients
+  if (existingIndex != -1 && !isAccord) {
+    print("Ingredient already exists in formula!");
+    return;
+  }
+
   final selectedIngredient = _availableIngredients.firstWhere(
     (ingredient) => ingredient['id'] == ingredientId,
     orElse: () => {},
@@ -442,34 +670,40 @@ void addIngredientRow(BuildContext context, int ingredientId) async {
 
   final List<Map<String, dynamic>> mutableIngredientList = List.from(_formulaIngredients);
 
-  // Add a new ingredient with default values to the in-memory state
   mutableIngredientList.add({
     'ingredient_id': selectedIngredient['id'],
     'amount': 0.0,
     'dilution': 1.0,
     'name': selectedIngredient['name'],
     'ratio': 0.0,
+    'is_accord': isAccord, // Track if it's an accord
   });
-  _formulaIngredients = mutableIngredientList;
 
-  // Add new controllers
+  _formulaIngredients = mutableIngredientList;
+  
+  // Add controllers
   _amountControllers.add(TextEditingController(text: '0.0'));
   _dilutionControllers.add(TextEditingController(text: '1.0'));
   _ratioControllers.add(TextEditingController(text: '0.0'));
 
-  // Ensure focus nodes are reinitialized to match the new ingredient count
   _initializeFocusNodes(_formulaIngredients.length - 1);
 
-  // Lock input mode after the first ingredient is added
-  if (_formulaIngredients.length == 1) {
-    _isInputModeLocked = true;
-  }
-
   notifyListeners();
-  await addIngredientToFormula(selectedIngredient['id']);
+
+  // **AUTO-SAVE IMMEDIATELY AFTER ADDING**
+  print("DEBUG: Auto-saving after ingredient addition");
+  await saveFormulaIngredients();
 }
 
   void removeIngredient(int index) async {
+    final ingredient = _formulaIngredients[index];
+    final isAccord = ingredient['is_accord'] ?? false;
+
+    if (isAccord) {
+      print("DEBUG: Removing an Accord - ${ingredient['name']}");
+    } else {
+      print("DEBUG: Removing an Ingredient - ${ingredient['name']}");
+    }
     // print("PRE REM: ${_formulaIngredients}");
     // int ingredientId = _formulaIngredients[index]['id'];
     // await _service.removeIngredientFromFormula(ingredientId);
@@ -567,7 +801,7 @@ void updateDilutionFactor(int index, String value) {
     print('Cannot iterate on an empty formula.');
     return;
   }
-   _currentFormula = await _service.fetchFormulaITER(_currentFormulaId!);
+   _currentFormula = await _service.fetchFormulaById(_currentFormulaId!);
 
 
   // Generate the new formula name with the next iteration
@@ -640,7 +874,7 @@ void toggleRatioInput(BuildContext context, bool value) async {
 }
 
 
-void handleDilutionChange(int index, String value)  {
+void handleDilutionChange(int index, String value)  async{
   double dilution = double.tryParse(value) ?? 1.0;
   print("DIL VALUE CHANGED: $value");
 
@@ -660,30 +894,67 @@ void handleDilutionChange(int index, String value)  {
   } else {
     print("Warning: ingredient_id is null for index $index");
   }
+
+  notifyListeners();
+
+  // **AUTO-SAVE AFTER DILUTION CHANGE**
+  print("DEBUG: Auto-saving after dilution change");
+  await saveFormulaIngredients();
 }
 
-void handleAmountChange(int index, String value) {
-  double amount = double.tryParse(value) ?? 0.0;
-  print("AMOUNT VALUE CHANGED: $amount");
+// void handleAmountChange(int index, String value) {
+//   double amount = double.tryParse(value) ?? 0.0;
+//   print("AMOUNT VALUE CHANGED: $amount");
 
+//   final ingredient = _formulaIngredients[index];
+
+//   if (ingredient['ingredient_id'] != null) {
+//     // Update the ingredient in the formula with the new amount
+//     updateIngredientInFormula(
+//       index,
+//       ingredient['ingredient_id']!,
+//       amount,
+//       ingredient['dilution'],
+//     );
+//   } else {
+//     print("Warning: ingredient_id is null for index $index");
+//   }
+
+//   // Optionally, you can recalculate the total amount if needed
+//   calculateTotalAmount();
+//   notifyListeners();
+// }
+
+void handleAmountChange(int index, String value) async {
+  double amount = double.tryParse(value) ?? 0.0;
   final ingredient = _formulaIngredients[index];
 
-  if (ingredient['ingredient_id'] != null) {
-    // Update the ingredient in the formula with the new amount
-    updateIngredientInFormula(
-      index,
-      ingredient['ingredient_id']!,
-      amount,
-      ingredient['dilution'],
-    );
+  if (ingredient['is_accord'] == true) {
+    _updateAccordIngredients(ingredient['ingredient_id'], amount);
   } else {
-    print("Warning: ingredient_id is null for index $index");
+    updateIngredientInFormula(index, ingredient['ingredient_id']!, amount, ingredient['dilution']);
   }
 
-  // Optionally, you can recalculate the total amount if needed
   calculateTotalAmount();
   notifyListeners();
+
+  // **AUTO-SAVE AFTER AMOUNT CHANGE**
+  print("DEBUG: Auto-saving after amount change");
+  await saveFormulaIngredients();
 }
+
+void _updateAccordIngredients(int accordId, double newAmount) {
+  for (var ingredient in _formulaIngredients) {
+    if (ingredient['parent_accord_id'] == accordId) {
+      double ratio = ingredient['amount'] / (_formulaIngredients.firstWhere(
+        (item) => item['ingredient_id'] == accordId)['amount']);
+
+      ingredient['amount'] = newAmount * ratio;
+      ingredient['locked'] = true; // Prevent manual editing
+    }
+  }
+}
+
 
 void handleRatioChange(int index, String value) {
   double ratio = double.tryParse(value) ?? 0.0;
@@ -723,9 +994,32 @@ void handleRatioChange(int index, String value) {
     }
   }
 
-      Future<Map<String, dynamic>?> fetchFormula(int formulaId) async{
-    return await _service.fetchFormulaForIFRA(formulaId);
+  Future<void> fetchFormula(int formulaId) async {
+  print("DEBUG: Fetching formula with id: $formulaId");
+
+  try {
+    final formula = await _service.fetchFormulaById(formulaId);
+    
+    if (formula != null) {
+      print("DEBUG: Fetched formula: $formula");
+
+      _currentFormulaId = formulaId;
+      _currentFormula = formula;
+      
+      // ✅ Use the new `is_accord` field from the database query
+      _isAccordFormula = formula['type'] == 'category_0';
+      print("DEBUG: Is Accord Formula: $_isAccordFormula");
+
+      notifyListeners();
+    } else {
+      print("ERROR: No formula found with id: $formulaId");
+    }
+  } catch (e) {
+    print("ERROR: Failed to fetch formula: $e");
   }
+}
+
+
 
     void exportData(String format) async {
       

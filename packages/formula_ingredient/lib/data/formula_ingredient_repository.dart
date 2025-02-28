@@ -150,16 +150,20 @@ class FormulaIngredientRepository {
     }
   }
 
-  Future<void> saveFormulaIngredients(int formulaId, List<Map<String, dynamic>> ingredients) async {
+Future<void> saveFormulaIngredients(int formulaId, List<Map<String, dynamic>> ingredients) async {
   final db = await DatabaseHelper().database;
 
   for (var ingredient in ingredients) {
-    await db.insert('formula_ingredient', {
-      'formula_id': formulaId,
-      'ingredient_id': ingredient['ingredient_id'],
-      'amount': ingredient['amount'],
-      'dilution': ingredient['dilution'],
-    });
+    await db.insert(
+      'formula_ingredient',
+      {
+        'formula_id': formulaId,
+        'ingredient_id': ingredient['ingredient_id'],
+        'amount': ingredient['amount'],
+        'dilution': ingredient['dilution'],
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace, // Ensures it updates instead of inserting duplicate rows
+    );
   }
 }
 
@@ -279,7 +283,7 @@ Future<List<Map<String, dynamic>>> fetchFormulaIngredients(int formulaId) async 
 
     // Log the fetched data
     // if (kDebugMode) {
-      print("Fetched IFRA standards for category $category: $data");
+      // print("Fetched IFRA standards for category $category: $data");
     // }
 
     return data;
@@ -319,20 +323,33 @@ Future<List<String>> fetchCasNumbers(int ingredientId) async {
   }
 }
 
-Future<Map<String, dynamic>?> fetchFormulaITER(int id) async {
-    final db = await DatabaseHelper().database;
-    print("Fetching formula with id: $id");
-    try {
-      final data = await db.query('formulas', where: 'id = ?', whereArgs: [id]);
-      if (data.isNotEmpty) {
-        print("Fetched formula: ${data.first}");
-        return data.first;
-      }
-    } catch (e) {
-      print("Error fetching formula: $e");
-    }
-    return null;
+Future<Map<String, dynamic>?> fetchFormulaById(int formulaId) async {
+  final db = await DatabaseHelper().database;
+  print("Fetching formula with id: $formulaId");
+
+  try {
+    final data = await db.query(
+      'formulas',
+      where: 'id = ?',
+      whereArgs: [formulaId],
+    );
+
+   if (data.isNotEmpty) {
+    final formula = Map<String, dynamic>.from(data.first); // Convert to mutable map
+    print("Fetched formula: $formula");
+
+    formula['is_accord'] = (formula['type'] == 'category_0'); // Modify safely
+    print("formula with accord check: $formula");
+
+    return formula;
   }
+  } catch (e) {
+    print("Error fetching formula: $e");
+  }
+  
+  return null;
+}
+
 
   Future<void> updateFormulaInputMode(int formulaId, bool isRatioInput) async {
   final isRatio = isRatioInput ? 1 : 0; // SQLite uses 1 for true and 0 for false
@@ -361,4 +378,68 @@ Future<String?> getCategoryColor(String categoryName) async {
     return '#CCCCCC'; // Return default if an error occurs
   }
 }
+
+Future<List<Map<String, dynamic>>> fetchAvailableAccords() async {
+  final db = await DatabaseHelper().database;
+  print("Fetching available accords...");
+
+  try {
+    final data = await db.rawQuery('''
+      SELECT a.id, a.name, 
+             (SELECT GROUP_CONCAT(ai.ingredient_id || ':' || ai.ratio, ',') 
+              FROM accord_ingredients ai 
+              WHERE ai.accord_id = a.id) AS ingredient_ratios
+      FROM accords a;
+    ''');
+
+    print("Fetched ${data.length} accords.");
+    return data;
+  } catch (e) {
+    print("Error fetching accords: $e");
+    return [];
+  }
+}
+
+Future<List<Map<String, dynamic>>> fetchAccordIngredients(int accordId) async {
+  final db = await DatabaseHelper().database;
+  print("Fetching ingredients for accord ID $accordId...");
+
+  try {
+    final data = await db.rawQuery('''
+      SELECT ai.ingredient_id, ai.ratio, i.name
+      FROM accord_ingredients ai
+      INNER JOIN ingredients i ON ai.ingredient_id = i.id
+      WHERE ai.accord_id = ?;
+    ''', [accordId]);
+
+    print("Fetched accord ingredients: $data");
+    return data;
+  } catch (e) {
+    print("Error fetching accord ingredients: $e");
+    return [];
+  }
+}
+
+Future<void> addAccordIngredient(int accordId, int ingredientId, double ratio) async {
+  final db = await DatabaseHelper().database;
+  print("Saving ingredient $ingredientId with ratio $ratio for accord $accordId...");
+
+  try {
+    await db.insert(
+      'accord_ingredients',
+      {
+        'accord_id': accordId,
+        'ingredient_id': ingredientId,
+        'ratio': ratio
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    print("Ingredient added to accord.");
+  } catch (e) {
+    print("Error adding ingredient to accord: $e");
+  }
+}
+
+
+
 }

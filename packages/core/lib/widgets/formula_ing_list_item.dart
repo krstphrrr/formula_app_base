@@ -30,8 +30,8 @@ class FormulaIngredientListItem extends StatelessWidget {
     this.amountFocusNode,
     this.dilutionFocusNode,
     this.isCompliant = true,
-    required this.categoryColor,
-  });
+    Color? categoryColor, // Nullable input
+  }) : categoryColor = categoryColor ?? const Color(0xFFCCCCCC); // Default to gray if null
 
   @override
   Widget build(BuildContext context) {

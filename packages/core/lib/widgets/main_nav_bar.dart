@@ -7,6 +7,7 @@ import 'package:settings_data/presentation/settings_data_page.dart';
 import 'package:settings_data/settings_data.dart';
 import 'package:formula_list/formula_list.dart';
 import 'package:inventory_list/inventory_list.dart';
+import 'package:settings_category/settings_category.dart';
 
 class MainNavBar extends StatefulWidget {
   @override
@@ -115,12 +116,12 @@ Widget build(BuildContext context) {
               leading: const Icon(Icons.format_color_fill_rounded),
               title: const Text('Categories manager'),
               onTap: () {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //     builder: (context) => SettingsCategoryPage(),
-                //   ),
-                // );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SettingsCategoryPage(),
+                  ),
+                );
               },
             ),
           ],
