@@ -31,6 +31,38 @@ Future<List<Map<String, dynamic>>> fetchFormulas() async {
     }
   }
 
+Future<void> deleteAccord(int accordId) async {
+  final db = await DatabaseHelper().database;
+  print("Deleting accord ID: $accordId from accords table...");
+
+  try {
+    await db.delete(
+      'accords',
+      where: 'id = ?',
+      whereArgs: [accordId],
+    );
+    print("Accord deleted successfully.");
+  } catch (e) {
+    print("Error deleting accord: $e");
+  }
+}
+
+Future<void> deleteAccordIngredients(int accordId) async {
+  final db = await DatabaseHelper().database;
+  print("Deleting ingredients linked to accord ID: $accordId...");
+
+  try {
+    await db.delete(
+      'accord_ingredients',
+      where: 'accord_id = ?',
+      whereArgs: [accordId],
+    );
+    print("Accord ingredients deleted successfully.");
+  } catch (e) {
+    print("Error deleting accord ingredients: $e");
+  }
+}
+
 
 }
 // Let's say that I have a couple of features, each with its own page: formula list page, formula add page, ingredient list page. each has it's own provider separate from the actual widget implementation. If occassionally there are moments where providers need information from the state of another provider, is it recommended to have crosstalk between providers? or should each provider populate its own state and keep it independently? for instance, formula add page needs to know about which formula Let's say that I have a couple of features, each with its own page: formula list page, formula add page, ingredient list page. each has it's own provider separate from the actual widget implementation. If occassionally there are moments where providers need information from the state of another provider, is it recommended to have crosstalk between providers? or should each provider populate its own state and keep it independently? for instance, formula add page needs to know about which formula 

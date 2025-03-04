@@ -379,6 +379,20 @@ Future<String?> getCategoryColor(String categoryName) async {
   }
 }
 
+// ACCORD MAGIC
+
+Future<int?> getAccordIdByFormulaId(int formulaId) async {
+  final db = await DatabaseHelper().database;
+  final result = await db.query(
+    'accords',
+    columns: ['id'],
+    where: 'formula_id = ?',
+    whereArgs: [formulaId],
+  );
+
+  return result.isNotEmpty ? result.first['id'] as int : null;
+}
+
 Future<List<Map<String, dynamic>>> fetchAvailableAccords() async {
   final db = await DatabaseHelper().database;
   print("Fetching available accords...");
@@ -420,6 +434,31 @@ Future<List<Map<String, dynamic>>> fetchAccordIngredients(int accordId) async {
   }
 }
 
+Future<int> addAccord(String accordName) async {
+  final db = await DatabaseHelper().database;
+
+  return await db.insert(
+    'accords',
+    {
+      'name': accordName,
+    },
+    conflictAlgorithm: ConflictAlgorithm.ignore,
+  );
+}
+
+Future<int?> getAccordIdByName(String accordName) async {
+  final db = await DatabaseHelper().database;
+  final result = await db.query(
+    'accords',
+    columns: ['id'],
+    where: 'name = ?',
+    whereArgs: [accordName],
+  );
+  return result.isNotEmpty ? result.first['id'] as int : null;
+}
+
+
+
 Future<void> addAccordIngredient(int accordId, int ingredientId, double ratio) async {
   final db = await DatabaseHelper().database;
   print("Saving ingredient $ingredientId with ratio $ratio for accord $accordId...");
@@ -432,7 +471,7 @@ Future<void> addAccordIngredient(int accordId, int ingredientId, double ratio) a
         'ingredient_id': ingredientId,
         'ratio': ratio
       },
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: ConflictAlgorithm.replace, // Ensures it updates duplicates
     );
     print("Ingredient added to accord.");
   } catch (e) {
@@ -441,5 +480,23 @@ Future<void> addAccordIngredient(int accordId, int ingredientId, double ratio) a
 }
 
 
+Future<void> deleteAccordIngredient(int accordId, int ingredientId) async {
+  final db = await DatabaseHelper().database;
+  print("Deleting ingredient $ingredientId from accord $accordId...");
+
+  try {
+    await db.delete(
+      'accord_ingredients',
+      where: 'accord_id = ? AND ingredient_id = ?',
+      whereArgs: [accordId, ingredientId],
+    );
+    print("Ingredient deleted from accord.");
+  } catch (e) {
+    print("Error deleting ingredient from accord: $e");
+  }
+ }
+
+
+ 
 
 }

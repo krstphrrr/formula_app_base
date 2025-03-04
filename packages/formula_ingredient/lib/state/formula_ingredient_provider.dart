@@ -80,6 +80,9 @@ List<Map<String, dynamic>> get availableAccords => _availableAccords;
 List<Map<String, dynamic>> _filteredAccords = [];
 List<Map<String, dynamic>> get filteredAccords => _filteredAccords;
 
+String? _currentFormulaName;
+String? get currentFormulaName => _currentFormulaName;
+
 
 bool _isAccordFormula = false;
 bool get isAccordFormula => _isAccordFormula;
@@ -151,36 +154,45 @@ Future<void> saveFormulaIngredients() async {
 
   print("DEBUG: Saving Formula Ingredients for Formula ID: $_currentFormulaId");
 
+  double totalAmount = _formulaIngredients.fold(
+      0.0, (sum, ingredient) => sum + ingredient['amount']);
+
   for (var ingredient in _formulaIngredients) {
     final ingredientId = ingredient['ingredient_id'];
     final amount = ingredient['amount'];
     final dilution = ingredient['dilution'];
-    final ratio = ingredient['ratio'] ?? 0.0; // Default ratio to 0.0 if null
+    final ratio = totalAmount > 0 ? amount / totalAmount : 0.0;
 
-    print("DEBUG: Preparing to save ingredient ID: $ingredientId | Amount: $amount | Dilution: $dilution | Ratio: $ratio");
+    print("DEBUG: Saving ingredient ID: $ingredientId | Amount: $amount | Dilution: $dilution | Ratio: $ratio");
 
     try {
+      await _service.addFormulaIngredient(
+        _currentFormulaId!,
+        ingredientId,
+        amount,
+        dilution,
+      );
+
       if (_isAccordFormula) {
-        print("DEBUG: Saving as an Accord Formula.");
-        await _service.addAccordIngredient(
-          _currentFormulaId!,
-          ingredientId,
-          ratio, // Save the ratio instead of amount
-        );
-      } else {
-        await _service.addFormulaIngredient(
-          _currentFormulaId!,
-          ingredientId,
-          amount,
-          dilution,
-        );
+        if (_currentFormulaName == null) {
+          print("ERROR: Formula name is null, cannot save accord.");
+          return;
+        }
+
+        print("DEBUG: Also saving as an Accord Formula - Formula Name: $_currentFormulaName");
+
+        int accordId = await _service.getOrCreateAccord(_currentFormulaName!);
+        await _service.addAccordIngredient(accordId, ingredientId, ratio);
       }
+
       print("SUCCESS: Ingredient $ingredientId saved successfully.");
     } catch (e) {
       print("ERROR: Failed to save ingredient $ingredientId - $e");
     }
   }
 }
+
+
 
 
 
@@ -398,7 +410,9 @@ Future<void> fetchFormulaIngredients(int formulaId) async {
     await fetchFormula(formulaId);
   // }
 
+
   if (_isAccordFormula) {
+    print("DEBUG PROVIDER: IS ACCORD");
     print("DEBUG: Pulling ingredients from accord_ingredients (Accord Formula)");
     _formulaIngredients = await _service.fetchAccordIngredients(formulaId);
   } else {
@@ -696,43 +710,73 @@ void addIngredientRow(BuildContext context, int ingredientId, {bool isAccord = f
 }
 
   void removeIngredient(int index) async {
-    final ingredient = _formulaIngredients[index];
-    final isAccord = ingredient['is_accord'] ?? false;
+  final ingredient = _formulaIngredients[index];
+  final ingredientId = ingredient['ingredient_id'];
+  
+  print("DEBUG: Removing Ingredient - ${ingredient['name']}");
 
-    if (isAccord) {
-      print("DEBUG: Removing an Accord - ${ingredient['name']}");
-    } else {
-      print("DEBUG: Removing an Ingredient - ${ingredient['name']}");
-    }
-    // print("PRE REM: ${_formulaIngredients}");
-    // int ingredientId = _formulaIngredients[index]['id'];
-    // await _service.removeIngredientFromFormula(ingredientId);
-    await _service.deleteFormulaIngredient(
-        _currentFormulaId!, _formulaIngredients[index]['ingredient_id']);
+  try {
+    // Step 1: Delete from formula_ingredients
+    await _service.deleteFormulaIngredient(_currentFormulaId!, ingredientId);
     
+    // Step 2: If the formula is an accord, delete from accord_ingredients too
+    if (_isAccordFormula) {
+      print("DEBUG: Removing from accord_ingredients");
+      await _service.deleteAccordIngredient(_currentFormulaId!, ingredientId);
+    }
+
+    // Step 3: Remove from local list and dispose of controllers
     _formulaIngredients.removeAt(index);
     _amountControllers.removeAt(index);
     _dilutionControllers.removeAt(index);
-    _amountFocusNodes.removeAt(index).dispose();  // Dispose of the FocusNode properly
-    _dilutionFocusNodes.removeAt(index).dispose();  // Dispose of the FocusNode properly
-    //  print("POST REM: ${_formulaIngredients}");
-    //  final ingredient = _formulaIngredients[index];
-    if(_formulaIngredients.length<1){
+    _ratioControllers.removeAt(index);
+    _amountFocusNodes.removeAt(index).dispose();
+    _dilutionFocusNodes.removeAt(index).dispose();
+    _ratioFocusNodes.removeAt(index).dispose();
+
+    // Step 4: Check if the formula is now empty
+    if (_formulaIngredients.isEmpty) {
       _isInputModeLocked = false;
     }
 
-     
-    
-    // notifyListeners();
+    print("SUCCESS: Ingredient removed successfully.");
+
     notifyListeners();
+  } catch (e) {
+    print("ERROR: Failed to remove ingredient - $e");
+  }
+}
+
+
+  Future<void> deleteFormulaIngredient(int ingredientId) async {
+  if (_currentFormulaId == null) {
+    print("ERROR: No formula ID found, cannot delete ingredient.");
+    return;
   }
 
-    // Delete a formula ingredient
-  Future<void> deleteFormulaIngredient(int formulaId, int ingredientId) async {
-    await _service.deleteFormulaIngredient(
-        formulaId, ingredientId);
-    await fetchFormulaIngredients(formulaId); // Refresh the list after deleting
+  print("DEBUG: Deleting ingredient ID: $ingredientId from Formula ID: $_currentFormulaId");
+
+  try {
+    await _service.deleteFormulaIngredient(_currentFormulaId!, ingredientId);
+
+    if (_isAccordFormula) {
+      print("DEBUG: Also deleting from Accord Ingredients.");
+      await _service.deleteAccordIngredient(_currentFormulaId!, ingredientId);
+    }
+
+    // ✅ Remove ingredient from local list
+    _formulaIngredients.removeWhere((ingredient) => ingredient['ingredient_id'] == ingredientId);
+
+    // ✅ Refresh the formula ingredients list
+    await fetchFormulaIngredients(_currentFormulaId!);
+
+    notifyListeners();
+    print("SUCCESS: Ingredient $ingredientId deleted successfully.");
+  } catch (e) {
+    print("ERROR: Failed to delete ingredient $ingredientId - $e");
   }
+}
+
 
   void updateIngredientInFormula(
     int index, 
@@ -994,7 +1038,7 @@ void handleRatioChange(int index, String value) {
     }
   }
 
-  Future<void> fetchFormula(int formulaId) async {
+ Future<void> fetchFormula(int formulaId) async {
   print("DEBUG: Fetching formula with id: $formulaId");
 
   try {
@@ -1004,10 +1048,11 @@ void handleRatioChange(int index, String value) {
       print("DEBUG: Fetched formula: $formula");
 
       _currentFormulaId = formulaId;
+      _currentFormulaName = formula['name'];  // ✅ Ensure formula name is assigned
       _currentFormula = formula;
-      
-      // ✅ Use the new `is_accord` field from the database query
-      _isAccordFormula = formula['type'] == 'category_0';
+      _isAccordFormula = formula['type'] == 'category_0';  // ✅ Check if it's an accord
+
+      print("DEBUG: Formula Name Set: $_currentFormulaName");
       print("DEBUG: Is Accord Formula: $_isAccordFormula");
 
       notifyListeners();
@@ -1018,6 +1063,7 @@ void handleRatioChange(int index, String value) {
     print("ERROR: Failed to fetch formula: $e");
   }
 }
+
 
 
 

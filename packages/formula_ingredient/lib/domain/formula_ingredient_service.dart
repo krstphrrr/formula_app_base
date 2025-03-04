@@ -219,9 +219,44 @@ Future<List<Map<String, dynamic>>> fetchAccordIngredients(int accordId) async {
   return await _repository.fetchAccordIngredients(accordId);
 }
 
+
+
+// ACCORD MAGIC
+
 Future<void> addAccordIngredient(int accordId, int ingredientId, double ratio) async {
   return await _repository.addAccordIngredient(accordId, ingredientId, ratio);
 }
 
+Future<int> addAccord(String accordName) async {
+  // Check if the accord already exists
+  int? existingAccordId = await _repository.getAccordIdByName(accordName);
+
+  if (existingAccordId != null) {
+    print("DEBUG: Accord '$accordName' already exists with ID: $existingAccordId");
+    return existingAccordId; // Return the existing accord ID
+  }
+
+  // If the accord doesn't exist, create a new one
+  return await _repository.addAccord(accordName);
+}
+
+Future<int> getAccordIdByFormulaId(int formulaId) async {
+  final accordId = await _repository.getAccordIdByFormulaId(formulaId);
+  if (accordId == null) {
+    throw Exception('Accord ID not found for formula ID: $formulaId');
+  }
+  return accordId;
+  }
+
+Future<void> deleteAccordIngredient(int accordId, int ingredientId) async {
+  return await _repository.deleteAccordIngredient(accordId, ingredientId);
+}
+
+Future<int> getOrCreateAccord(String accordName) async {
+  final accordId = await _repository.getAccordIdByName(accordName);
+  if (accordId != null) return accordId;
+
+  return await _repository.addAccord(accordName);
+}
 
 }

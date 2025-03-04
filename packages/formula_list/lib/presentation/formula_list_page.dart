@@ -57,53 +57,52 @@ void initState() {
     });
   }
 
-  void openDeleteBox(int index) async{
-    final formulaListProvider = Provider.of<FormulaListProvider>(context, listen: false);
-    final formulas = formulaListProvider.formulas;
-    final formula = formulas[index];
+  void openDeleteBox(int index) async {
+  final formulaListProvider = Provider.of<FormulaListProvider>(context, listen: false);
+  final formulas = formulaListProvider.formulas;
+  final formula = formulas[index];
 
-    // Show a confirmation dialog before deletion
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Formula'),
-          content: const Text(
-              'Are you sure you want to delete this formula?'),
-          actions: [
-            TextButton(
-              onPressed: () =>{
-                  Navigator.of(context).pop(false),
-                  setState(() {
-        formulaListProvider.fetchFormulas();  // Rebuild after fetching formulas
-      }),
-                  },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () =>{
-                  Navigator.of(context).pop(true),
-                  setState(() {
-        formulaListProvider.fetchFormulas();  // Rebuild after fetching formulas
-      }),
-                  },
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
-    );
+  final confirm = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Delete Formula'),
+        content: const Text('Are you sure you want to delete this formula?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(false);
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(true);
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      );
+    },
+  );
 
-    if (confirm == true) {
-      print("TRUEE");
-      await formulaListProvider.deleteFormula(formula['id']);
-      
+  if (confirm == true) {
+    print("DEBUG: Deleting formula with ID: ${formula['id']}");
+    await formulaListProvider.deleteFormula(formula['id'], formula['type'] ?? 'category_0');
+
+
+    if (mounted) {
       setState(() {
-        formulaListProvider.fetchFormulas();  // Rebuild after fetching formulas
-        Provider.of<FormulaAddProvider>(context, listen: false).clearControllers();
-      }); 
+        formulaListProvider.fetchFormulas();
+      });
+    }
+
+    if (mounted) {
+      Provider.of<FormulaAddProvider>(context, listen: false).clearControllers();
     }
   }
+}
+
   
 
   @override

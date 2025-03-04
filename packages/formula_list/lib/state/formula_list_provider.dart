@@ -46,15 +46,53 @@ Future<void> fetchFormulas() async {
   }
 
   _isLoading = false;
+  // notifyListeners();
 }
 
-  Future<void> deleteFormula(int id) async {
 
+// Future<void> fetchFormulas() async {
+//   if (_isLoading) return; // Prevent infinite loop
+
+//   _isLoading = true;
+//   notifyListeners(); // Notify UI that loading has started
+
+//   bool _isFetching = true; // NEW local variable to control fetch timing
+
+//   try {
+//     final newFormulas = await _service.fetchFormulas();
+
+//     if (!listEquals(_formulas, newFormulas)) {
+//       _formulas = newFormulas;
+//       _filteredFormulas = List.from(newFormulas);
+//       notifyListeners(); // Only notify when there's a change
+//     }
+//   } catch (e) {
+//     print("ERROR: Failed to fetch formulas - $e");
+//   } finally {
+//     _isFetching = false; // Prevent further calls
+//     _isLoading = false;
+    
+//     if (!_isFetching) {
+//       notifyListeners(); // Notify UI that loading has ended
+//     }
+//   }
+// }
+
+
+Future<void> deleteFormula(int id, String type) async {
+  if (type == 'category_0') {
+    print("DEBUG: Deleting an Accord Formula with ID: $id");
+    await _service.deleteAccord(id); // Calls service to delete accord and related ingredients
+  } else {
+    print("DEBUG: Deleting a Regular Formula with ID: $id");
     await _service.deleteFormula(id);
-    await fetchFormulas();
-    clearControllers();
-    notifyListeners();
   }
+  
+  await fetchFormulas();
+  clearControllers();
+  notifyListeners();
+}
+
 
     void filterFormulas(String query) {
     if (query.isEmpty) {

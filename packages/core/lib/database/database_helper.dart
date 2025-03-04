@@ -70,6 +70,7 @@ class DatabaseHelper {
         accord_id INTEGER NOT NULL,
         ingredient_id INTEGER NOT NULL,
         ratio REAL NOT NULL,
+        UNIQUE(accord_id, ingredient_id),
         FOREIGN KEY (accord_id) REFERENCES accords(id) ON DELETE CASCADE,
         FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE
     );
