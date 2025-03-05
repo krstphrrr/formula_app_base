@@ -496,6 +496,33 @@ Future<void> deleteAccordIngredient(int accordId, int ingredientId) async {
   }
  }
 
+ Future<bool> isIngredientInInventory(int ingredientId) async {
+  final db = await DatabaseHelper().database;
+  final result = await db.query(
+    'inventory',
+    where: 'ingredient_id = ?',
+    whereArgs: [ingredientId],
+  );
+  return result.isNotEmpty;
+}
+
+Future<void> addIngredientToInventory(int ingredientId) async {
+  final db = await DatabaseHelper().database;
+  await db.insert(
+    'inventory',
+    {
+      'ingredient_id': ingredientId,
+      'inventory_amount': 0.0,
+      'acquisition_date': DateTime.now().toIso8601String(),
+      'personal_notes': '',
+      'cost_per_gram': 0.0,
+      'preferred_synonym_id': null,
+    },
+    conflictAlgorithm: ConflictAlgorithm.ignore,
+  );
+}
+
+
 
  
 

@@ -395,15 +395,12 @@ void _showAddIngredientSelectionDialog(BuildContext context) {
                               bool isPartOfAccord = ingredient['is_accord_ingredient'] == true;
                               final amountController = formulaIngredientProvider
                                   .amountControllers[index];
-                              final dilutionController =
-                                  formulaIngredientProvider
-                                      .dilutionControllers[index];
+                              final dilutionController = formulaIngredientProvider.dilutionControllers[index];
 
                               final ratioController = formulaIngredientProvider.ratioControllers[index];
                               //  final ingredient['name'] = formulaIngredientProvider.
 
-                              final amountFocusNode = formulaIngredientProvider.amountFocusNodes
-                                                    .isNotEmpty &&
+                              final amountFocusNode = formulaIngredientProvider.amountFocusNodes                                             .isNotEmpty &&
                                                 index <
                                                     formulaIngredientProvider.amountFocusNodes.length
                                             ? formulaIngredientProvider.amountFocusNodes[index]
@@ -452,42 +449,67 @@ void _showAddIngredientSelectionDialog(BuildContext context) {
                                       },
                                     );
                                   } else {
-                                return FormulaIngredientListItem(
-                                title: ingredient['name'],
-                                amountController: amountController,
-                                dilutionController: dilutionController,
-                                relativeAmountText:
-                                    (relativeAmount * 100).toStringAsFixed(2),
-                                // amountFocusNode: amountFocusNode,
-                                amountFocusNode: isPartOfAccord ? null : formulaIngredientProvider.amountFocusNodes[index],
-                                // dilutionFocusNode: dilutionFocusNode,
-                                dilutionFocusNode: isPartOfAccord ? null : formulaIngredientProvider.dilutionFocusNodes[index],
+                              //   return FormulaIngredientListItem(
+                              //   title: ingredient['name'],
+                              //   amountController: amountController,
+                              //   dilutionController: dilutionController,
+                              //   relativeAmountText:
+                              //       (relativeAmount * 100).toStringAsFixed(2),
+                              //   // amountFocusNode: amountFocusNode,
+                              //   amountFocusNode: isPartOfAccord ? null : formulaIngredientProvider.amountFocusNodes[index],
+                              //   // dilutionFocusNode: dilutionFocusNode,
+                              //   dilutionFocusNode: isPartOfAccord ? null : formulaIngredientProvider.dilutionFocusNodes[index],
 
-                                isCompliant: formulaIngredientProvider.isIngredientCompliant(index),
-                                categoryColor: ingredient['categoryColor'],
-                                // onChangedAmount: (value){
-                                //     formulaIngredientProvider.handleAmountChange(index, value);
-                                //   },
-                                onChangedAmount: isPartOfAccord ? (value) {} : (value) {
-                                  formulaIngredientProvider.handleAmountChange(index, value);
-                                },
-                                //   onChangedDilution: (value){
-                                //   formulaIngredientProvider.handleDilutionChange(index, value);
-                                // },
-                                onChangedDilution: (value) {
-                                  if (!isPartOfAccord) {
-                                    formulaIngredientProvider.handleDilutionChange(index, value);
-                                  }
-                                },
+                              //   isCompliant: formulaIngredientProvider.isIngredientCompliant(index),
+                              //   categoryColor: ingredient['categoryColor'],
+                              //   // onChangedAmount: (value){
+                              //   //     formulaIngredientProvider.handleAmountChange(index, value);
+                              //   //   },
+                              //   onChangedAmount: isPartOfAccord ? (value) {} : (value) {
+                              //     formulaIngredientProvider.handleAmountChange(index, value);
+                              //   },
+                              //   //   onChangedDilution: (value){
+                              //   //   formulaIngredientProvider.handleDilutionChange(index, value);
+                              //   // },
+                              //   onChangedDilution: (value) {
+                              //     if (!isPartOfAccord) {
+                              //       formulaIngredientProvider.handleDilutionChange(index, value);
+                              //     }
+                              //   },
                                 
-                                // onDeletePressed: () {
-                                //   formulaIngredientProvider
-                                //       .removeIngredient(index);
-                                // },
-                                onDeletePressed: isPartOfAccord ? () {} : () {
-                                  formulaIngredientProvider.removeIngredient(index);
+                              //   // onDeletePressed: () {
+                              //   //   formulaIngredientProvider
+                              //   //       .removeIngredient(index);
+                              //   // },
+                              //   onDeletePressed: isPartOfAccord ? () {} : () {
+                              //     formulaIngredientProvider.removeIngredient(index);
+                              //   },
+                              // );
+
+                              return FutureBuilder<bool>(
+                                future: formulaIngredientProvider.isIngredientInInventory(ingredient['ingredient_id']),
+                                builder: (context, snapshot) {
+                                  bool isInInventory = snapshot.data ?? false;
+                                  return FormulaIngredientListItem(
+                                    title: ingredient['name'],
+                                    amountController: amountController,
+                                    dilutionController: dilutionController,
+                                    relativeAmountText: (relativeAmount * 100).toStringAsFixed(2),
+                                    isCompliant: formulaIngredientProvider.isIngredientCompliant(index),
+                                    categoryColor: ingredient['categoryColor'],
+                                    isInInventory: isInInventory,
+                                    onInventoryChecked: (value) {
+                                      if (value == true) {
+                                        formulaIngredientProvider.addIngredientToInventory(ingredient['ingredient_id']);
+                                      }
+                                    },
+                                    onChangedAmount: (value) => formulaIngredientProvider.handleAmountChange(index, value),
+                                    onChangedDilution: (value) => formulaIngredientProvider.handleDilutionChange(index, value),
+                                    onDeletePressed: () => formulaIngredientProvider.removeIngredient(index),
+                                  );
                                 },
                               );
+
                             }              
                   })
                 )

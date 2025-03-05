@@ -56,34 +56,58 @@ class InventoryListProvider extends ChangeNotifier {
   }
 
   // methods
+// Future<void> fetchInventory() async {
+//   if (_isLoading) return; 
+//   _isLoading = true;
+
+//   try {
+//     final newInventory = await _service.fetchInventory(); 
+
+//     if (!listEquals(_inventoryItems, newInventory)) { 
+//       _inventoryItems = newInventory;
+//       _filteredInventory = List.from(newInventory); 
+
+//       // Assign colors based on category if available
+//       for (var item in _inventoryItems) {
+//         final category = item['category'];
+//         if (_categoryColors.containsKey(category)) {
+//           item['color'] = _categoryColors[category];
+//         }
+//       }
+
+//       notifyListeners(); 
+//     }
+//   } catch (e) {
+//     _hasError = true;
+//     print("Error loading inventory: $e");
+//   } finally {
+//     _isLoading = false;
+//   }
+// }
+
 Future<void> fetchInventory() async {
-  if (_isLoading) return; 
+  if (_isLoading) return;  // Prevent multiple calls
   _isLoading = true;
+  notifyListeners();
 
   try {
-    final newInventory = await _service.fetchInventory(); 
+    final newInventory = await _service.fetchInventory();
 
-    if (!listEquals(_inventoryItems, newInventory)) { 
+    if (!listEquals(_inventoryItems, newInventory)) {
       _inventoryItems = newInventory;
-      _filteredInventory = List.from(newInventory); 
+      _filteredInventory = List.from(newInventory);
 
-      // Assign colors based on category if available
-      for (var item in _inventoryItems) {
-        final category = item['category'];
-        if (_categoryColors.containsKey(category)) {
-          item['color'] = _categoryColors[category];
-        }
-      }
-
-      notifyListeners(); 
+      notifyListeners(); // Notify only if data has changed
     }
   } catch (e) {
     _hasError = true;
     print("Error loading inventory: $e");
   } finally {
     _isLoading = false;
+    notifyListeners();
   }
 }
+
 
 
 

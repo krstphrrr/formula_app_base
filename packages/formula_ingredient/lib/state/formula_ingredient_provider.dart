@@ -1132,6 +1132,14 @@ void _sortIngredients() {
   notifyListeners();
 }
 
+  Future<bool> isIngredientInInventory(int ingredientId) async {
+    return await _service.isIngredientInInventory(ingredientId);
+  }
+
+  Future<void> addIngredientToInventory(int ingredientId) async {
+    await _service.addIngredientToInventory(ingredientId);
+    notifyListeners();
+  }
 
 
 }

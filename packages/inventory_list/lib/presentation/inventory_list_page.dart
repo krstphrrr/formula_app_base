@@ -21,17 +21,15 @@ void initState() {
   super.initState();
 
   Future.microtask(() async {
-    if (!mounted) return; // ✅ Ensure widget is still in the tree
+    if (!mounted) return; // Ensure widget is still in the tree
     final inventoryProvider =
         Provider.of<InventoryListProvider>(context, listen: false);
-    
-    await inventoryProvider.fetchInventory();
 
-    if (!mounted) return; // ✅ Check again before calling setState
-    setState(() {}); 
+    if (inventoryProvider.inventoryItems.isEmpty) { // Prevent unnecessary calls
+      await inventoryProvider.fetchInventory();
+    }
   });
 }
-
 
  Future<void> openDeleteBox(int inventoryIngredientId) async {
   final inventoryListProvider =
@@ -69,11 +67,11 @@ if (inventoryIngredient.isEmpty) return;// Exit if inventoryIngredient is not fo
   if (confirm == true) {
     await inventoryListProvider.deleteInventoryItem(inventoryIngredientId);
 
-    setState(() {
+    // setState(() {
       inventoryListProvider.fetchInventory(); // Rebuild after fetching inventoryItems
       // Provider.of<InventoryEditProvider>(context, listen: false)
       //     .clearControllers();
-    });
+    // });
   }
 }
 
@@ -266,14 +264,15 @@ String getAssetPath(String pyramidPlace) {
                       final inventoryItem = inventoryItems[index];
 
                       // Ensure proper field mapping
-                      String assetPath = getAssetPath(inventoryItem['pyramid_place']);
-                      String subtitle = 'Amount: ${inventoryItem['inventory_amount']} g'
+                      String assetPath = getAssetPath(inventoryItem['pyramid_place'] ?? 'assets/images/pyramid-clear/4x/pyramid-clear-nonexxxhdpi.png');
+                      final casNumbers = inventoryItem['cas_numbers'] ?? 'N/A';
+                      final subtitle = 'Amount: ${inventoryItem['inventory_amount']} g'
                           '\nCost/g: \$${inventoryItem['cost_per_gram'].toStringAsFixed(2)}'
                           '\nSynonym: ${inventoryItem['preferred_synonym'] ?? "N/A"}'
-                          '\nCAS: ${inventoryItem['cas_numbers'] ?? "N/A"}';
+                          '\nCAS: ${casNumbers.toString()}'; // Ensure it's a string
 
                       return FutureBuilder<Color>(
-                        future: inventoryListProvider.getCategoryColor(inventoryItem['category']),
+                        future: inventoryListProvider.getCategoryColor(inventoryItem['category'] ?? "N/A"),
                         builder: (context, snapshot) {
                           final categoryColor = snapshot.data ?? Colors.grey;
                           return CustomListItem(

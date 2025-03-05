@@ -15,6 +15,8 @@ class FormulaIngredientListItem extends StatelessWidget {
   final FocusNode? dilutionFocusNode;
   final bool isCompliant;
   final Color categoryColor;
+  final bool isInInventory;
+  final Function(bool?)? onInventoryChecked;
 
   const FormulaIngredientListItem({
     super.key,
@@ -29,6 +31,8 @@ class FormulaIngredientListItem extends StatelessWidget {
     // required this.onChangedRatio,
     this.amountFocusNode,
     this.dilutionFocusNode,
+    required this.isInInventory,
+    required this.onInventoryChecked,
     this.isCompliant = true,
     Color? categoryColor, // Nullable input
   }) : categoryColor = categoryColor ?? const Color(0xFFCCCCCC); // Default to gray if null
@@ -144,6 +148,10 @@ class FormulaIngredientListItem extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
+            ),
+            Checkbox(
+              value: isInInventory,
+              onChanged: isInInventory ? null : onInventoryChecked, // Disable if already in inventory
             ),
           ],
         ),

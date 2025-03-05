@@ -32,51 +32,51 @@ class FormulaListProvider extends ChangeNotifier {
 
   // methods
 
-Future<void> fetchFormulas() async {
-  if (_isLoading) return; 
-  _isLoading = true;
-
-  final newFormulas = await _service.fetchFormulas();
-
-  if (!listEquals(_formulas, newFormulas)) { 
-    _formulas = newFormulas;
-    _filteredFormulas = List.from(newFormulas); 
-
-    notifyListeners(); 
-  }
-
-  _isLoading = false;
-  // notifyListeners();
-}
-
-
 // Future<void> fetchFormulas() async {
-//   if (_isLoading) return; // Prevent infinite loop
-
+//   if (_isLoading) return; 
 //   _isLoading = true;
-//   notifyListeners(); // Notify UI that loading has started
 
-//   bool _isFetching = true; // NEW local variable to control fetch timing
+//   final newFormulas = await _service.fetchFormulas();
 
-//   try {
-//     final newFormulas = await _service.fetchFormulas();
+//   if (!listEquals(_formulas, newFormulas)) { 
+//     _formulas = newFormulas;
+//     _filteredFormulas = List.from(newFormulas); 
 
-//     if (!listEquals(_formulas, newFormulas)) {
-//       _formulas = newFormulas;
-//       _filteredFormulas = List.from(newFormulas);
-//       notifyListeners(); // Only notify when there's a change
-//     }
-//   } catch (e) {
-//     print("ERROR: Failed to fetch formulas - $e");
-//   } finally {
-//     _isFetching = false; // Prevent further calls
-//     _isLoading = false;
-    
-//     if (!_isFetching) {
-//       notifyListeners(); // Notify UI that loading has ended
-//     }
+//     notifyListeners(); 
 //   }
+
+//   _isLoading = false;
+//   // notifyListeners();
 // }
+
+
+Future<void> fetchFormulas() async {
+  if (_isLoading) return; // Prevent infinite loop
+
+  _isLoading = true;
+  notifyListeners(); // Notify UI that loading has started
+
+  bool _isFetching = true; // NEW local variable to control fetch timing
+
+  try {
+    final newFormulas = await _service.fetchFormulas();
+
+    if (!listEquals(_formulas, newFormulas)) {
+      _formulas = newFormulas;
+      _filteredFormulas = List.from(newFormulas);
+      notifyListeners(); // Only notify when there's a change
+    }
+  } catch (e) {
+    print("ERROR: Failed to fetch formulas - $e");
+  } finally {
+    _isFetching = false; // Prevent further calls
+    _isLoading = false;
+    
+    if (!_isFetching) {
+      notifyListeners(); // Notify UI that loading has ended
+    }
+  }
+}
 
 
 Future<void> deleteFormula(int id, String type) async {

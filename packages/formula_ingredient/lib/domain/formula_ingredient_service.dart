@@ -259,4 +259,19 @@ Future<int> getOrCreateAccord(String accordName) async {
   return await _repository.addAccord(accordName);
 }
 
+Future<bool> isIngredientInInventory(int ingredientId) async {
+  return await _repository.isIngredientInInventory(ingredientId);
+
+}
+
+Future<void> addIngredientToInventory(int ingredientId) async {
+  return await _repository.addIngredientToInventory(ingredientId);
+}
+
+
+
+
+
+
+
 }

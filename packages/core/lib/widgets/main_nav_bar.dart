@@ -131,8 +131,9 @@ Widget build(BuildContext context) {
   index: _currentIndex,
   children: [
     
-    Consumer<FormulaListProvider>(
-      builder: (context, formulaListProvider, child) {
+    Selector<FormulaListProvider, bool>(
+      selector: (_, provider) => provider.isLoading, // Only listens to loading state
+      builder: (context, isLoading, child) {
         return Navigator(
           key: GlobalKey<NavigatorState>(),
           onGenerateRoute: (settings) {
@@ -145,13 +146,14 @@ Widget build(BuildContext context) {
     ),
 
     
-    Consumer<InventoryListProvider>(
-      builder: (context, inventoryListProvider, child) {
+    Selector<InventoryListProvider, bool>(
+      selector: (_, provider) => provider.isLoading, // Only listens to loading state
+      builder: (context, isLoading, child) {
         return Navigator(
           key: GlobalKey<NavigatorState>(),
           onGenerateRoute: (settings) {
             return MaterialPageRoute(
-              builder: (context) => InventoryListPage(), 
+              builder: (context) => InventoryListPage(),
             );
           },
         );
@@ -170,7 +172,7 @@ Widget build(BuildContext context) {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.colorize),
-            label: 'Ingredients',
+            label: 'Inventory',
           ),
         ],
       ),
