@@ -237,6 +237,9 @@ void selectCategory(String category) {
   'pinene': 'terpenic',
   'thujone': 'terpenic',
   'thujonic': 'terpenic',
+  'fir needle': 'terpenic',
+  'pine needle': 'terpenic',
+
 
 
   // Smoky
@@ -315,6 +318,8 @@ void selectCategory(String category) {
   // mossy
   'mossy': 'mossy',
   'moss': 'mossy', 
+  'lichen': 'mossy',
+  'lichenous': 'mossy',
 
   // Savory
   'dairy': 'savory',
@@ -375,8 +380,6 @@ void selectCategory(String category) {
   'tallow': 'aldehydic',
 
   
-  
-
   // Animalic
   'animalic': 'animalic',
   'leathery': 'animalic',

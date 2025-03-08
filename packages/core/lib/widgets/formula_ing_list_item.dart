@@ -103,7 +103,7 @@ class FormulaIngredientListItem extends StatelessWidget {
 
             // Amount TextField with fixed width
              SizedBox(
-              width: 80,
+              width: 60,
               child: TextField(
                 focusNode: amountFocusNode,
                 controller: amountController,
@@ -121,7 +121,7 @@ class FormulaIngredientListItem extends StatelessWidget {
 
             // Dilution TextField with fixed width
             SizedBox(
-              width: 60, // Set a fixed width for dilution field
+              width: 50, // Set a fixed width for dilution field
               child: TextField(
                 focusNode: dilutionFocusNode,
                 controller: dilutionController,
@@ -139,7 +139,7 @@ class FormulaIngredientListItem extends StatelessWidget {
 
             // Relative Amount Text
             SizedBox(
-              width: 80, // Set a fixed width for relative amount text
+              width: 60, // Set a fixed width for relative amount text
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerRight,

@@ -66,17 +66,17 @@ Widget build(BuildContext context) {
     // No need to return a value; the callback is void
   },
     child: Scaffold(
-       appBar: AppBar(
-  leading: Builder(
-    builder: (context) => IconButton(
-      icon: Icon(Icons.menu),
-      onPressed: () {
-        Scaffold.of(context).openDrawer();
-      },
-    ),
-  ),
-  title: Text('Main Navigation Bar'),
-),
+//        appBar: AppBar(
+//         leading: Builder(
+//           builder: (context) => IconButton(
+//             icon: Icon(Icons.menu),
+//             onPressed: () {
+//               Scaffold.of(context).openDrawer();
+//             },
+//           ),
+//         ),
+//   title: Text('Main Navigation Bar'),
+// ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
