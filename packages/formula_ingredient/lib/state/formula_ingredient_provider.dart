@@ -600,37 +600,77 @@ bool isIngredientCompliant(int index) {
     notifyListeners();
   }
 
+// void filterAvailableIngredients(String query) {
+//   print("Filtering ingredients with query: '$query'");
+
+//   if (query.isEmpty) {
+//     print("Query is empty, showing all ingredients.");
+//     _filteredIngredients = List.from(_availableIngredients);
+//     notifyListeners();
+//     return;
+//   }
+
+//   final keywords = query.toLowerCase().split(' ');
+
+//   _filteredIngredients = _availableIngredients.where((ingredient) {
+//     final commonName = ingredient['name']?.toLowerCase() ?? '';
+//     final category = ingredient['category']?.toLowerCase() ?? '';
+//     final synonyms = ingredient['synonyms']?.toLowerCase() ?? ''; 
+//     // final casNumbers = ingredient['cas_numbers']?.toLowerCase() ?? ''; 
+
+//     final matches = keywords.every((keyword) {
+//       return commonName.contains(keyword) ||
+//              category.contains(keyword) ||
+//              synonyms.contains(keyword);
+//             //  casNumbers.contains(keyword);
+//     });
+
+//     if (matches) {
+//       print("MATCH: ${ingredient['name']} | Synonyms: $synonyms");
+//     }
+
+//     return matches;
+//   }).toList();
+
+//   print("Filtered ingredients count: ${_filteredIngredients.length}");
+//   notifyListeners();
+// }
+
 void filterAvailableIngredients(String query) {
   print("Filtering ingredients with query: '$query'");
 
-  if (query.isEmpty) {
+  if (query.isEmpty || query.length < 3) {
     print("Query is empty, showing all ingredients.");
     _filteredIngredients = List.from(_availableIngredients);
     notifyListeners();
     return;
   }
 
+  // Convert query into lowercase keywords
   final keywords = query.toLowerCase().split(' ');
 
-  _filteredIngredients = _availableIngredients.where((ingredient) {
+  // Reset filtered list each time
+  List<Map<String, dynamic>> newFilteredList = [];
+
+  for (var ingredient in _availableIngredients) {
     final commonName = ingredient['name']?.toLowerCase() ?? '';
     final category = ingredient['category']?.toLowerCase() ?? '';
-    final synonyms = ingredient['synonyms']?.toLowerCase() ?? ''; 
-    // final casNumbers = ingredient['cas_numbers']?.toLowerCase() ?? ''; 
+    final synonyms = ingredient['synonyms']?.toLowerCase() ?? '';
 
     final matches = keywords.every((keyword) {
       return commonName.contains(keyword) ||
              category.contains(keyword) ||
              synonyms.contains(keyword);
-            //  casNumbers.contains(keyword);
     });
 
     if (matches) {
+      newFilteredList.add(ingredient);
       print("MATCH: ${ingredient['name']} | Synonyms: $synonyms");
     }
+  }
 
-    return matches;
-  }).toList();
+  // Assign new filtered list to prevent old matches from lingering
+  _filteredIngredients = newFilteredList;
 
   print("Filtered ingredients count: ${_filteredIngredients.length}");
   notifyListeners();
@@ -656,7 +696,9 @@ Future<void> addIngredientToFormula(int ingredientId) async {
   if (_formulaIngredients.isNotEmpty) {
     _isInputModeLocked = true;
   }
-  _searchController.clear();
+  
+  clearControllers();
+  _filteredIngredients = List.from(_availableIngredients);
 
 
   notifyListeners();

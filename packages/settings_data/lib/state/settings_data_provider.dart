@@ -51,6 +51,7 @@ class SettingsDataProvider extends ChangeNotifier {
       await _service.truncateIfraTable();
     } else if (selectedFeature == 'Ingredients') {
       await _service.truncateIngredientsTable();
+      // await _service.debugPrintIngredientsTable();
     }
   }
 
@@ -170,32 +171,51 @@ String _classifySubstantivity(double substantivityValue) {
   // Helper method to parse Ingredient CSV data
 List<Map<String, dynamic>> _parseIngredientCsv(List<List<dynamic>> rows) {
   return rows.skip(1).map((row) {
-    final substantivity = double.tryParse(row[5]?.toString() ?? '0.0') ?? 0.0;
-    final pyramidPlace = _classifySubstantivity(substantivity);
+    // Ensure the row has enough columns before accessing
+    final int columnCount = row.length;
 
-    // Extract and split synonyms
-    final synonymsString = row[9]?.toString() ?? ''; // Adjusted index for synonyms
+    final String name = columnCount > 1 ? row[1]?.toString() ?? '' : ''; // Corrected
+    final String casNumber = columnCount > 2 ? row[2]?.toString() ?? '' : ''; // Corrected
+    final String category = columnCount > 3 ? row[3]?.toString() ?? '' : ''; // Corrected
+    final String description = columnCount > 4 ? row[4]?.toString() ?? '' : ''; // Corrected
+
+    final double substantivity = columnCount > 5
+        ? double.tryParse(row[5]?.toString() ?? '0.0') ?? 0.0
+        : 0.0;
+    final String pyramidPlace = _classifySubstantivity(substantivity);
+
+    final double? boilingPoint = columnCount > 6
+        ? double.tryParse(row[6]?.toString() ?? '0.0')
+        : null;
+    final double? vaporPressure = columnCount > 7
+        ? double.tryParse(row[7]?.toString() ?? '0.0')
+        : null;
+    final double? molecularWeight = columnCount > 8
+        ? double.tryParse(row[8]?.toString() ?? '0.0')
+        : null;
+
+    // Ensure safe extraction of synonyms
+    final String synonymsString = columnCount > 9 ? row[9]?.toString() ?? '' : '';
     final List<String> synonyms = synonymsString
-        .split(',')
+        .split('|') // Ensure proper delimiter from Python
         .map((synonym) => synonym.trim())
         .where((synonym) => synonym.isNotEmpty)
         .toList();
 
-    // Assign the first synonym as the preferred synonym (if available)
     final String? preferredSynonym = synonyms.isNotEmpty ? synonyms.first : null;
 
     return {
-      'name': row[1]?.toString() ?? '',
-      'cas_number': row[2]?.toString() ?? '',
-      'category': row[3]?.toString() ?? '',
-      'description': row[4]?.toString() ?? '',
+      'name': name,  // Now correctly mapped
+      'cas_number': casNumber,  // Now correctly mapped
+      'category': category,  // Now correctly mapped
+      'description': description,  // Now correctly mapped
       'substantivity': substantivity,
-      'boiling_point': double.tryParse(row[6]?.toString() ?? '0.0'),
-      'vapor_pressure': double.tryParse(row[7]?.toString() ?? '0.0'),
-      'molecular_weight': double.tryParse(row[8]?.toString() ?? '0.0'),
+      'boiling_point': boilingPoint,
+      'vapor_pressure': vaporPressure,
+      'molecular_weight': molecularWeight,
       'pyramid_place': pyramidPlace,
-      'synonyms': synonyms, // Parsed list of synonyms
-      'preferred_synonym': preferredSynonym, // Assign preferred synonym
+      'synonyms': synonyms,
+      'preferred_synonym': preferredSynonym,
     };
   }).toList();
 }
@@ -219,6 +239,29 @@ List<Map<String, dynamic>> _parseIngredientCsv(List<List<dynamic>> rows) {
     await _service.ingestIngredientsCsv(ingredientData);
   }
 }
+
+// Future<void> ingestCsv() async {
+//   if (csvFile == null) {
+//     print("No CSV file selected.");
+//     return;
+//   }
+
+//   final csvData = await csvFile!.readAsString();
+//   final rows = const CsvToListConverter().convert(csvData);
+
+//   // DEBUG: Print the first few rows of the CSV before processing
+//   for (var i = 0; i < (rows.length < 5 ? rows.length : 5); i++) {
+//     print("CSV Row $i: ${rows[i]}");
+//   }
+
+//   if (selectedFeature == 'IFRA') {
+//     final List<Map<String, dynamic>> ifraData = _parseIfraCsv(rows);
+//     await _service.ingestIfraCsv(ifraData);
+//   } else if (selectedFeature == 'Ingredients') {
+//     final List<Map<String, dynamic>> ingredientData = _parseIngredientCsv(rows);
+//     await _service.ingestIngredientsCsv(ingredientData);
+//   }
+// }
 
   
   

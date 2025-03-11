@@ -111,7 +111,9 @@ Future<void> ingestIngredientsCsv(List<Map<String, dynamic>> ingredientData) asy
   if (ingredientData.isNotEmpty) {
     for (final data in ingredientData) {
       final casNumbers = (data['cas_number'] as String).split(',').map((e) => e.trim()).toList();
-      final List<String> synonyms = List<String>.from(data['synonyms'] ?? []);
+      final List<String> synonyms = (data['synonyms'] is String) 
+          ? (data['synonyms'] as String).split('|').map((e) => e.trim()).toList() 
+          : List<String>.from(data['synonyms'] ?? []);
       final String? preferredSynonym = data['preferred_synonym'];
 
       // Insert ingredient into database and get ID
@@ -127,5 +129,9 @@ Future<void> ingestIngredientsCsv(List<Map<String, dynamic>> ingredientData) asy
       }
     }
   }
+}
+
+Future<void> debugPrintIngredientsTable() async {
+  await _repository.debugPrintIngredientsTable();
 }
 }

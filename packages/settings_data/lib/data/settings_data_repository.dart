@@ -72,7 +72,7 @@ Future<int> insertIngredientWithDetails(
       'pyramid_place': ingredientData['pyramid_place'],
     });
 
-    print("Inserted ingredient with ID: $ingredientId");
+    // print("Inserted ingredient with ID: $ingredientId");
 
     // Handle CAS numbers
     for (String cas in casNumbers) {
@@ -153,6 +153,27 @@ Future<int> addSynonym(int ingredientId, String synonym) async {
   } catch (e) {
     print("Error adding synonym: $e");
     return -1; // Return -1 if an error occurs
+  }
+}
+
+Future<void> debugPrintIngredientsTable() async {
+  final db = await DatabaseHelper().database;
+  try {
+    List<Map<String, dynamic>> results = await db.query(
+      'ingredients',
+      limit: 10 // Fetch only the first 10 rows
+    );
+
+    if (results.isNotEmpty) {
+      print("First 10 rows in the ingredients table:");
+      for (var row in results) {
+        print(row);
+      }
+    } else {
+      print("The ingredients table is empty.");
+    }
+  } catch (e) {
+    print("Error retrieving ingredients table: $e");
   }
 }
 
