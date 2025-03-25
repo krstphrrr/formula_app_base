@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:core/core.dart';
-// import '../../formula_scaling/presentation/formula_scale_page.dart';
+import 'package:formula_scale/formula_scale.dart';
 // import 'package:formula_ingredient/state/formula_ingredient_provider.dart';
 import 'package:formula_ingredient/formula_ingredient.dart'; 
 
@@ -76,7 +76,7 @@ void initState() {
         initialChildSize: 0.5,
         minChildSize: 0.3,
         maxChildSize: 0.75,
-        expand: false,
+        expand: true,
         builder: (context, scrollController) {
           return Padding(
             padding: EdgeInsets.only(
@@ -268,13 +268,13 @@ void _showAddIngredientSelectionDialog(BuildContext context) {
           IconButton(
               icon: Icon(Icons.scale), // Use a scale icon or any other icon
               onPressed: () {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //     builder: (context) => FormulaScalePage(
-                //         formulaId: widget.formula['id']), // Pass the formula ID
-                //   ),
-                // );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FormulaScalePage(
+                        formulaId: widget.formula['id']), // Pass the formula ID
+                  ),
+                );
               },
             ),
             IconButton(
@@ -572,5 +572,6 @@ void _showAddIngredientSelectionDialog(BuildContext context) {
       ),
     );
   }
+
 }
 

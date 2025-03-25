@@ -83,6 +83,9 @@ List<Map<String, dynamic>> get filteredAccords => _filteredAccords;
 String? _currentFormulaName;
 String? get currentFormulaName => _currentFormulaName;
 
+  Map<String, dynamic>? _singleIngredientDetails = {};
+  Map<String, dynamic>? get singleIngredientDetails => _singleIngredientDetails;
+
 
 bool _isAccordFormula = false;
 bool get isAccordFormula => _isAccordFormula;
@@ -1106,6 +1109,9 @@ void handleRatioChange(int index, String value) {
   }
 }
 
+Future<Map<String, dynamic>?> fetchFormulaById(int formulaId) async{
+    return await _service.fetchFormulaForIFRA(formulaId);
+  }
 
 
 
@@ -1184,4 +1190,8 @@ void _sortIngredients() {
   }
 
 
+
+  Future<Map<String, dynamic>?> getIngredientById(int ingredientId) async {
+    return await _service.getIngredientById(ingredientId);
+  }
 }

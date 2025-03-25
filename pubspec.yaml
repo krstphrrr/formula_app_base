@@ -36,6 +36,9 @@ dependencies:
   settings_category:
     path: packages/settings_category
 
+  formula_scale:
+    path: packages/formula_scale
+
   
   # path_provider: ^2.1.4 # to get db path
   # intl: ^0.20.2
